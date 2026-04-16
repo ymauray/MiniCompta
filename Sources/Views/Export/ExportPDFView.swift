@@ -28,7 +28,32 @@ struct ExportPDFView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Période") {
+                Section("Raccourcis") {
+                    HStack(spacing: 8) {
+                        Button("Dernier trim.") {
+                            appliquerDernierTrimestre()
+                        }
+                        .buttonStyle(.bordered)
+                        .font(.caption)
+
+                        Button("Année en cours") {
+                            appliquerAnneeEnCours()
+                        }
+                        .buttonStyle(.bordered)
+                        .font(.caption)
+
+                        Button("Année préc.") {
+                            appliquerAnneePrecedente()
+                        }
+                        .buttonStyle(.bordered)
+                        .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                }
+
+                Section("Période personnalisée") {
                     DatePicker("Du", selection: $dateDebut, displayedComponents: .date)
                         .environment(\.locale, Locale(identifier: "fr_CH"))
                     DatePicker("Au", selection: $dateFin, in: dateDebut..., displayedComponents: .date)
@@ -76,6 +101,52 @@ struct ExportPDFView: View {
                     ShareSheet(activityItems: [url])
                 }
             }
+        }
+    }
+
+    // MARK: - Actions de raccourci
+
+    private func appliquerDernierTrimestre() {
+        let cal = Calendar.current
+        let m = cal.component(.month, from: .now)
+        let y = cal.component(.year, from: .now)
+        
+        // Le trimestre est (m-1)/3 (0: JFM, 1: AMJ, 2: JAS, 3: OND)
+        let trimestreActuel = (m - 1) / 3
+        let tPrec = trimestreActuel == 0 ? 3 : trimestreActuel - 1
+        let aPrec = trimestreActuel == 0 ? y - 1 : y
+        
+        let mDebut = tPrec * 3 + 1
+        let mFin = mDebut + 2
+        
+        let componentsDebut = DateComponents(year: aPrec, month: mDebut, day: 1)
+        if let d = cal.date(from: componentsDebut) {
+            dateDebut = d
+            // Dernier jour du mois mFin
+            let componentsSuivant = DateComponents(year: aPrec, month: mFin + 1, day: 1)
+            if let dSuivante = cal.date(from: componentsSuivant) {
+                dateFin = cal.date(byAdding: .day, value: -1, to: dSuivante) ?? .now
+            }
+        }
+    }
+
+    private func appliquerAnneeEnCours() {
+        let y = Calendar.current.component(.year, from: .now)
+        let componentsDebut = DateComponents(year: y, month: 1, day: 1)
+        let componentsFin = DateComponents(year: y, month: 12, day: 31)
+        if let d = Calendar.current.date(from: componentsDebut), let f = Calendar.current.date(from: componentsFin) {
+            dateDebut = d
+            dateFin = f
+        }
+    }
+
+    private func appliquerAnneePrecedente() {
+        let y = Calendar.current.component(.year, from: .now) - 1
+        let componentsDebut = DateComponents(year: y, month: 1, day: 1)
+        let componentsFin = DateComponents(year: y, month: 12, day: 31)
+        if let d = Calendar.current.date(from: componentsDebut), let f = Calendar.current.date(from: componentsFin) {
+            dateDebut = d
+            dateFin = f
         }
     }
 
