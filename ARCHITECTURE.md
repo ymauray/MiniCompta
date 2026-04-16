@@ -13,7 +13,8 @@ L'application suit une architecture en couches strictes : les vues SwiftUI ne co
                  │ lit / écrit via
 ┌────────────────▼────────────────────┐
 │          Stores @Observable         │
-│   JournalStore · ParametresStore    │
+│  JournalStore · ParametresStore     │
+│  DeviseStore                        │
 └────────────────┬────────────────────┘
                  │ ModelContext
 ┌────────────────▼────────────────────┐
@@ -65,10 +66,15 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 - Agrégats pour graphiques : par centre de coût, par catégorie
 - CRUD : `ajouterEcriture`, `supprimerEcriture`, `sauvegarder`
 
-### `ParametresStore`
+### ParametresStore
 - CRUD pour `TypeTVA`, `CentreDeCout`, `Categorie`
 - Seed automatique des types TVA au premier lancement
 - Tri des éléments selon leur propriété `ordre`
+
+### `DeviseStore`
+- Gère la devise de l'application (EUR, CHF, USD, etc.)
+- Persistance du code devise dans `UserDefaults`
+- Fournit le symbole de la devise pour les formateurs numériques
 
 > Les vues utilisent directement `@Query` de SwiftData pour les listes simples (performances optimales). Les Stores sont réservés aux opérations avec logique ou calculs.
 
@@ -79,7 +85,7 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 1. **Tableau de bord** (`TableauDeBordView`) — graphiques Swift Charts, navigation mensuelle
 2. **Journal** (`JournalView`) → `EcritureFormView` (ajout / modification)
    - Les écritures sont affichées sur 3 lignes : libellé (gras), date/montant, et pastilles (badges).
-3. **Paramètres** (`ParametresView`) → listes configurables + export PDF
+3. **Paramètres** (`ParametresView`) → choix de la devise + listes configurables + export PDF
    - Supporte la réorganisation manuelle (drag-and-drop) et la duplication (swipe).
 
 ## Export PDF

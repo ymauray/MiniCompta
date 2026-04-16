@@ -26,6 +26,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 ### Paramètres
 
+- **Choix de la devise** : sélection de la devise d'affichage (EUR, CHF, USD, GBP, CAD, JPY).
 - Gestion CRUD des centres de coût (nom + couleur)
 - Gestion CRUD des catégories (nom + couleur)
 - Gestion CRUD des types TVA (nom, taux, signification, case formulaire)
@@ -57,7 +58,7 @@ Les centres de coût et les catégories démarrent vides (tout est configurable)
 
 - **Plateforme** : iOS 18.0+, iPhone uniquement
 - **Persistance** : SwiftData (base SQLite locale, pas de synchronisation cloud)
-- **Devise** : CHF, locale `fr_CH`
+- **Devise** : configurable (CHF par défaut), locale `fr_CH` pour les formats de nombre
 - **Hors ligne** : 100% — aucune connexion réseau requise
 - **Swift** : version 6.0, concurrence stricte
 
@@ -65,6 +66,5 @@ Les centres de coût et les catégories démarrent vides (tout est configurable)
 
 - Synchronisation iCloud / multi-appareils
 - Import depuis Excel ou CSV
-- Gestion multi-devises
 - Comptabilité double entrée (grand livre, bilan)
 - Notifications / rappels
