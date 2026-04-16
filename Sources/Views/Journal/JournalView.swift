@@ -148,43 +148,56 @@ struct LigneEcriture: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: iconType)
                 .font(.title2)
                 .foregroundStyle(couleurMontant)
                 .frame(width: 32)
+                .padding(.top, 4)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 6) {
+                // Ligne 1 : Libellé étendu
                 Text(ecriture.libelle.isEmpty ? "Sans libellé" : ecriture.libelle)
-                    .font(.body)
+                    .font(.body.bold())
                     .lineLimit(1)
-                HStack(spacing: 6) {
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Ligne 2 : Date et Montant
+                HStack(alignment: .center) {
                     Text(ecriture.date, style: .date)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    if let cat = ecriture.categorie {
-                        BadgeView(texte: cat.nom, couleurHex: cat.couleurHex)
-                    }
-                    if let centre = ecriture.centreDeCout {
-                        BadgeView(texte: centre.nom, couleurHex: centre.couleurHex)
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text("\(ecriture.typeEcriture == .recette ? "+" : "-")\(ecriture.montantTTC.formatMonetaire)")
+                            .font(.body.bold())
+                            .foregroundStyle(couleurMontant)
+                        
+                        if ecriture.tauxTVA > 0 {
+                            Text("TVA \(ecriture.typeTVANom)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
-            }
 
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(ecriture.typeEcriture == .recette ? "+" : "-")\(ecriture.montantTTC.formatMonetaire)")
-                    .font(.body.bold())
-                    .foregroundStyle(couleurMontant)
-                if ecriture.tauxTVA > 0 {
-                    Text("TVA \(ecriture.typeTVANom)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                // Ligne 3 : Badges côte à côte
+                if ecriture.categorie != nil || ecriture.centreDeCout != nil {
+                    HStack(spacing: 6) {
+                        if let cat = ecriture.categorie {
+                            BadgeView(texte: cat.nom, couleurHex: cat.couleurHex)
+                        }
+                        if let centre = ecriture.centreDeCout {
+                            BadgeView(texte: centre.nom, couleurHex: centre.couleurHex)
+                        }
+                    }
+                    .padding(.top, 2)
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
 
