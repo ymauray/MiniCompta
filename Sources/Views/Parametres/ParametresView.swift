@@ -84,16 +84,13 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                         .frame(width: 14, height: 14)
                     Text(element.nom)
                     Spacer()
-                    Button {
-                        nomNouveau = element.nom
-                        couleurNouvelle = Color(hex: element.couleurHex)
-                        elementAModifier = element
-                        afficherFormulaire = true
-                    } label: {
-                        Image(systemName: "pencil")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    nomNouveau = element.nom
+                    couleurNouvelle = Color(hex: element.couleurHex)
+                    elementAModifier = element
+                    afficherFormulaire = true
                 }
                 .swipeActions(edge: .leading) {
                     Button {
