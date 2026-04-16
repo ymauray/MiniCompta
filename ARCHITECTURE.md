@@ -42,7 +42,7 @@ Représente une ligne du journal comptable.
 | `typeTVANom` | `String` | Nom du type TVA (dénormalisé) |
 
 ### `CentreDeCout` / `Categorie`
-Listes de référence configurables. Chacune porte un `nom` et une `couleurHex` (ex. `#5E9BF0`). Relation inverse avec `Ecriture` (deleteRule `.nullify`).
+Listes de référence configurables. Chacune porte un `nom`, une `couleurHex` (ex. `#5E9BF0`) et un `ordre` (entier pour le tri manuel). Relation inverse avec `Ecriture` (deleteRule `.nullify`).
 
 ### `TypeTVA`
 Taux TVA suisses avec métadonnées pour la déclaration.
@@ -53,6 +53,7 @@ Taux TVA suisses avec métadonnées pour la déclaration.
 | `taux` | Valeur décimale (0.081, 0.026, 0.0) |
 | `signification` | Description du taux |
 | `caseFormulaire` | N° de case du formulaire TVA suisse |
+| `ordre` | Position dans la liste (tri manuel) |
 
 Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 
@@ -67,6 +68,7 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 ### `ParametresStore`
 - CRUD pour `TypeTVA`, `CentreDeCout`, `Categorie`
 - Seed automatique des types TVA au premier lancement
+- Tri des éléments selon leur propriété `ordre`
 
 > Les vues utilisent directement `@Query` de SwiftData pour les listes simples (performances optimales). Les Stores sont réservés aux opérations avec logique ou calculs.
 
@@ -76,7 +78,9 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 
 1. **Tableau de bord** (`TableauDeBordView`) — graphiques Swift Charts, navigation mensuelle
 2. **Journal** (`JournalView`) → `EcritureFormView` (ajout / modification)
+   - Les écritures sont affichées sur 3 lignes : libellé (gras), date/montant, et pastilles (badges).
 3. **Paramètres** (`ParametresView`) → listes configurables + export PDF
+   - Supporte la réorganisation manuelle (drag-and-drop) et la duplication (swipe).
 
 ## Export PDF
 

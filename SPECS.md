@@ -13,6 +13,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Modification et suppression (swipe-to-delete dans la liste)
 - Liste groupée par mois, avec totaux mensuels (recettes / dépenses) dans l'en-tête de section
 - Recherche par libellé
+- **Affichage optimisé** : libellé sur toute la largeur (ligne 1), date et montant (ligne 2), et pastilles de catégorie/centre de coût (ligne 3)
 
 ### Tableau de bord
 
@@ -27,6 +28,8 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Gestion CRUD des centres de coût (nom + couleur)
 - Gestion CRUD des catégories (nom + couleur)
 - Gestion CRUD des types TVA (nom, taux, signification, case formulaire)
+- **Tri manuel** par drag-and-drop pour toutes les listes de référence
+- **Duplication rapide** d'un élément via swipe
 - Accès à l'export PDF
 
 ### Export PDF
