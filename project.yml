@@ -1,0 +1,41 @@
+name: MaCompta
+options:
+  bundleIdPrefix: ch.yannickmauray
+  developmentTeam: WFMP87LTRX
+  deploymentTarget:
+    iOS: "18.0"
+  developmentLanguage: fr
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: WFMP87LTRX
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  MaCompta:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ch.yannickmauray.ma-compta
+        INFOPLIST_KEY_CFBundleDisplayName: "Ma Compta"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
+
+  MaComptaTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: MaCompta
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ch.yannickmauray.ma-compta.tests
+        GENERATE_INFOPLIST_FILE: YES

@@ -1,0 +1,3 @@
+# Architecture — MaCompta
+
+<!-- À compléter -->

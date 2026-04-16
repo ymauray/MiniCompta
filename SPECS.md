@@ -1,0 +1,3 @@
+# Spécifications — MaCompta
+
+<!-- À compléter -->
