@@ -23,12 +23,15 @@ targets:
     dependencies:
       - sdk: SwiftData.framework
       - sdk: Charts.framework
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: Mini Compta
+        UIApplicationSupportsIndirectInputEvents: true
+        UILaunchStoryboardName: LaunchScreen
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ch.yannickmauray.mini-compta
-        INFOPLIST_KEY_CFBundleDisplayName: "Mini Compta"
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   MiniComptaTests:

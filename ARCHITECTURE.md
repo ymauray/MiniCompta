@@ -89,3 +89,9 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 ## Icône
 
 L'icône est générée programmatiquement par `GenerateIcon.swift` (script Swift autonome, AppKit + Core Graphics). Lancer `swift GenerateIcon.swift` à la racine pour régénérer un PNG 1024×1024.
+
+## Launch screen
+
+Le launch screen utilise un `LaunchScreen.storyboard` (`Sources/LaunchScreen.storyboard`) avec un `UIImageView` en `scaleAspectFill` couvrant tout l'écran. L'image est générée par `GenerateLaunchScreen.swift` (1290×2796 px, même charte graphique que l'icône). Lancer `swift GenerateLaunchScreen.swift` à la racine pour régénérer.
+
+> **Cache iOS** : le launch screen est mis en cache agressivement. Pour voir une mise à jour sur simulateur ou appareil, supprimer l'app et la réinstaller (⌘R depuis Xcode).

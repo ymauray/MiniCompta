@@ -35,6 +35,14 @@ swift GenerateIcon.swift
 
 Modifiez `GenerateIcon.swift` à la racine pour changer le design, puis exécutez le script. Le PNG 1024×1024 est placé automatiquement dans `Sources/Assets.xcassets/AppIcon.appiconset/`.
 
+## Régénérer le launch screen
+
+```bash
+swift GenerateLaunchScreen.swift
+```
+
+Modifiez `GenerateLaunchScreen.swift` à la racine. Le PNG 1290×2796 est placé dans `Sources/Assets.xcassets/LaunchImage.imageset/`. Après mise à jour, supprimer l'app du simulateur/appareil pour contourner le cache iOS.
+
 ## Après modification de `project.yml`
 
 ```bash
