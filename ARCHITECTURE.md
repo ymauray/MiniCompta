@@ -94,8 +94,11 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 
 L'icône est générée programmatiquement par `GenerateIcon.swift` (script Swift autonome, AppKit + Core Graphics). Lancer `swift GenerateIcon.swift` à la racine pour régénérer un PNG 1024×1024.
 
-## Launch screen
+## Launch screen et Splash screen
 
-Le launch screen utilise un `LaunchScreen.storyboard` (`Sources/LaunchScreen.storyboard`) avec un `UIImageView` en `scaleAspectFill` couvrant tout l'écran. L'image est générée par `GenerateLaunchScreen.swift` (1290×2796 px, même charte graphique que l'icône). Lancer `swift GenerateLaunchScreen.swift` à la racine pour régénérer.
+Le démarrage de l'application se décompose en deux phases pour une expérience fluide :
 
-> **Cache iOS** : le launch screen est mis en cache agressivement. Pour voir une mise à jour sur simulateur ou appareil, supprimer l'app et la réinstaller (⌘R depuis Xcode).
+1. **Launch Screen natif** : utilise un `LaunchScreen.storyboard` qui affiche l'asset **`LaunchImage`** (généré par `GenerateLaunchScreen.swift` en 1290×2796 px) en mode `scaleAspectFill`.
+2. **Splash Screen SwiftUI** : la `SplashView` prend immédiatement le relais en affichant le même asset `LaunchImage` avec les mêmes paramètres de rendu. Cela prolonge l'identité visuelle de 2 secondes avant la transition vers les onglets.
+
+> **Cohérence visuelle** : l'utilisation d'un asset unique partagé entre le Storyboard et SwiftUI garantit une transition invisible, évitant tout décalage de positionnement ou de rendu par rapport à un dessin programmatique.
