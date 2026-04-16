@@ -35,7 +35,7 @@ Représente une ligne du journal comptable.
 | `libelle` | `String` | Description libre |
 | `typeEcriture` | `TypeEcriture` | `.recette` ou `.depense` |
 | `montantTTC` | `Double` | Montant toutes taxes comprises |
-| `tauxTVA` | `Double` | Taux (ex. 0.081 pour 8.1%) |
+| `tauxTVA` | `Double` | Taux (ex. 0.20 pour 20.0%) |
 | `montantHT` | `Double` | **Calculé** : TTC / (1 + taux) |
 | `montantTVA` | `Double` | **Calculé** : TTC − HT |
 | `centreDeCout` | `CentreDeCout?` | Relation optionnelle |
@@ -46,17 +46,16 @@ Représente une ligne du journal comptable.
 Listes de référence configurables. Chacune porte un `nom`, une `couleurHex` (ex. `#5E9BF0`) et un `ordre` (entier pour le tri manuel). Relation inverse avec `Ecriture` (deleteRule `.nullify`).
 
 ### `TypeTVA`
-Taux TVA suisses avec métadonnées pour la déclaration.
+Taux TVA configurables avec métadonnées.
 
 | Propriété | Description |
 |---|---|
 | `nom` | Libellé affiché |
-| `taux` | Valeur décimale (0.081, 0.026, 0.0) |
+| `taux` | Valeur décimale (0.20, 0.055, 0.0) |
 | `signification` | Description du taux |
-| `caseFormulaire` | N° de case du formulaire TVA suisse |
 | `ordre` | Position dans la liste (tri manuel) |
 
-Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
+Des entrées sont injectées au premier lancement (seed) : 20%, 5.5%, 0%.
 
 ## Stores
 
@@ -72,7 +71,7 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 - Tri des éléments selon leur propriété `ordre`
 
 ### `DeviseStore`
-- Gère la devise de l'application (EUR, CHF, USD, etc.)
+- Gère la devise de l'application (EUR, USD, etc.)
 - Persistance du code devise dans `UserDefaults`
 - Fournit le symbole de la devise pour les formateurs numériques
 

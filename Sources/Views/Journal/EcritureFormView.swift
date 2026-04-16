@@ -45,7 +45,6 @@ struct EcritureFormView: View {
                 // Informations principales
                 Section("Détails") {
                     DatePicker("Date", selection: $date, displayedComponents: .date)
-                        .environment(\.locale, Locale(identifier: "fr_CH"))
                     TextField("Libellé", text: $libelle)
                     HStack {
                         Text("Montant TTC")
@@ -146,7 +145,6 @@ struct EcritureFormView: View {
     private func enregistrer() {
         let taux = typeTVASelectionne?.taux ?? 0
         let nomTVA = typeTVASelectionne?.nom ?? ""
-        let caseTVA = typeTVASelectionne?.caseFormulaire ?? ""
 
         if let e = ecritureExistante {
             e.typeEcriture = typeEcriture
@@ -155,7 +153,6 @@ struct EcritureFormView: View {
             e.montantTTC = montantTTC
             e.tauxTVA = taux
             e.typeTVANom = nomTVA
-            e.typeTVACaseFormulaire = caseTVA
             e.centreDeCout = centreSelectionne
             e.categorie = categorieSelectionnee
             try? modelContext.save()
@@ -167,7 +164,6 @@ struct EcritureFormView: View {
                 montantTTC: montantTTC,
                 tauxTVA: taux,
                 typeTVANom: nomTVA,
-                typeTVACaseFormulaire: caseTVA,
                 centreDeCout: centreSelectionne,
                 categorie: categorieSelectionnee
             )

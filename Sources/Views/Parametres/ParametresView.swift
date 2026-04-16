@@ -213,9 +213,6 @@ struct ListeTypesTVAView: View {
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(t.tauxFormate).font(.body.bold())
-                        if !t.caseFormulaire.isEmpty {
-                            Text("Case \(t.caseFormulaire)").font(.caption2).foregroundStyle(.secondary)
-                        }
                     }
                 }
                 .contentShape(Rectangle())
@@ -225,7 +222,7 @@ struct ListeTypesTVAView: View {
                 }
                 .swipeActions(edge: .leading) {
                     Button {
-                        let copie = TypeTVA(nom: t.nom, taux: t.taux, signification: t.signification, caseFormulaire: t.caseFormulaire, ordre: typesTVA.count)
+                        let copie = TypeTVA(nom: t.nom, taux: t.taux, signification: t.signification, ordre: typesTVA.count)
                         modelContext.insert(copie)
                         try? modelContext.save()
                     } label: {
@@ -283,7 +280,6 @@ struct FormulaireTVAView: View {
     @State private var nom: String = ""
     @State private var tauxTexte: String = ""
     @State private var signification: String = ""
-    @State private var caseFormulaire: String = ""
 
     private var valide: Bool {
         !nom.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -294,7 +290,7 @@ struct FormulaireTVAView: View {
         NavigationStack {
             Form {
                 Section("Identification") {
-                    TextField("Nom (ex. Normal 8.1%)", text: $nom)
+                    TextField("Nom (ex. Normal 20%)", text: $nom)
                         .clearable($nom)
                     TextField("Description", text: $signification)
                         .clearable($signification)
@@ -307,11 +303,6 @@ struct FormulaireTVAView: View {
                         Text("%")
                             .foregroundStyle(.secondary)
                     }
-                }
-                Section("Formulaire TVA") {
-                    TextField("N° de case (optionnel)", text: $caseFormulaire)
-                        .keyboardType(.numberPad)
-                        .clearable($caseFormulaire)
                 }
             }
             .navigationTitle(typeTVA == nil ? "Nouveau type TVA" : "Modifier")
@@ -330,7 +321,6 @@ struct FormulaireTVAView: View {
                     nom = t.nom
                     tauxTexte = String(format: "%.1f", t.taux * 100)
                     signification = t.signification
-                    caseFormulaire = t.caseFormulaire
                 }
             }
         }
@@ -342,9 +332,8 @@ struct FormulaireTVAView: View {
             t.nom = nom
             t.taux = tauxDecimal
             t.signification = signification
-            t.caseFormulaire = caseFormulaire
         } else {
-            let nouveau = TypeTVA(nom: nom, taux: tauxDecimal, signification: signification, caseFormulaire: caseFormulaire, ordre: ordreProchain)
+            let nouveau = TypeTVA(nom: nom, taux: tauxDecimal, signification: signification, ordre: ordreProchain)
             modelContext.insert(nouveau)
         }
         try? modelContext.save()

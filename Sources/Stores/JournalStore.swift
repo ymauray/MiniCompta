@@ -27,7 +27,7 @@ final class JournalStore {
     func ecrituresGroupeesParMois() -> [(cle: String, ecritures: [Ecriture])] {
         let toutes = ecritures()
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "fr_CH")
+        formatter.locale = .autoupdatingCurrent
         formatter.dateFormat = "MMMM yyyy"
 
         var groupes: [(cle: String, ecritures: [Ecriture])] = []

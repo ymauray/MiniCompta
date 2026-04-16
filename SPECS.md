@@ -2,7 +2,7 @@
 
 ## Contexte
 
-Application iPhone personnelle pour remplacer un fichier Excel de comptabilité. Conçue pour la comptabilité suisse (monnaie CHF, taux TVA suisses).
+Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 ## Périmètre fonctionnel
 
@@ -29,7 +29,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - **Choix de la devise** : sélection de la devise d'affichage (EUR, CHF, USD, GBP, CAD, JPY).
 - Gestion CRUD des centres de coût (nom + couleur)
 - Gestion CRUD des catégories (nom + couleur)
-- Gestion CRUD des types TVA (nom, taux, signification, case formulaire)
+- Gestion CRUD des types TVA (nom, taux, signification)
 - **Tri manuel** par drag-and-drop pour toutes les listes de référence
 - **Duplication rapide** d'un élément via swipe
 - Accès à l'export PDF
@@ -46,11 +46,11 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 Les types TVA suivants sont pré-chargés au premier lancement :
 
-| Nom | Taux | Case formulaire |
-|---|---|---|
-| Normal 8.1% | 8.1% | 302 |
-| Spécial 2.6% | 2.6% | 342 |
-| Exonéré 0% | 0% | — |
+| Nom | Taux |
+|---|---|
+| Normal 20% | 20% |
+| Réduit 5.5% | 5.5% |
+| Exonéré 0% | 0% |
 
 Les centres de coût et les catégories démarrent vides (tout est configurable).
 
@@ -58,7 +58,7 @@ Les centres de coût et les catégories démarrent vides (tout est configurable)
 
 - **Plateforme** : iOS 18.0+, iPhone uniquement
 - **Persistance** : SwiftData (base SQLite locale, pas de synchronisation cloud)
-- **Devise** : configurable (CHF par défaut), locale `fr_CH` pour les formats de nombre
+- **Devise** : configurable, locale courante du système pour les formats de nombre
 - **Hors ligne** : 100% — aucune connexion réseau requise
 - **Swift** : version 6.0, concurrence stricte
 

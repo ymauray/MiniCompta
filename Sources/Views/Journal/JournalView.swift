@@ -16,7 +16,7 @@ struct JournalView: View {
 
     private var groupesParMois: [(cle: String, ecritures: [Ecriture])] {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "fr_CH")
+        formatter.locale = .autoupdatingCurrent
         formatter.dateFormat = "MMMM yyyy"
 
         var groupes: [(cle: String, ecritures: [Ecriture])] = []

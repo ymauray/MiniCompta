@@ -6,14 +6,12 @@ final class TypeTVA {
     var nom: String
     var taux: Double
     var signification: String
-    var caseFormulaire: String
     var ordre: Int
 
-    init(nom: String, taux: Double, signification: String, caseFormulaire: String = "", ordre: Int = 0) {
+    init(nom: String, taux: Double, signification: String, ordre: Int = 0) {
         self.nom = nom
         self.taux = taux
         self.signification = signification
-        self.caseFormulaire = caseFormulaire
         self.ordre = ordre
     }
 
@@ -27,9 +25,9 @@ final class TypeTVA {
 
     static var seedData: [TypeTVA] {
         [
-            TypeTVA(nom: "Normal 8.1%", taux: 0.081, signification: "Taux normal", caseFormulaire: "302", ordre: 0),
-            TypeTVA(nom: "Spécial 2.6%", taux: 0.026, signification: "Hôtellerie / presse", caseFormulaire: "342", ordre: 1),
-            TypeTVA(nom: "Exonéré 0%", taux: 0.0, signification: "Opérations hors TVA", caseFormulaire: "", ordre: 2),
+            TypeTVA(nom: "Normal 20%", taux: 0.20, signification: "Taux normal", ordre: 0),
+            TypeTVA(nom: "Réduit 5.5%", taux: 0.055, signification: "Taux réduit", ordre: 1),
+            TypeTVA(nom: "Exonéré 0%", taux: 0.0, signification: "Opérations hors TVA", ordre: 2),
         ]
     }
 }

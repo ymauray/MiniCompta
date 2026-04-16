@@ -104,7 +104,6 @@ struct TableauDeBordView: View {
             Text(moisAffiche, format: .dateTime.month(.wide).year())
                 .font(.headline)
                 .textCase(.uppercase)
-                .environment(\.locale, Locale(identifier: "fr_CH"))
 
             Spacer()
 

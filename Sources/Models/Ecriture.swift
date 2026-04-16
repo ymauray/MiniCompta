@@ -26,16 +26,14 @@ final class Ecriture {
 
     // TypeTVA est stocké par nom/taux pour éviter une dépendance forte
     var typeTVANom: String
-    var typeTVACaseFormulaire: String
 
     init(
         date: Date = .now,
         libelle: String = "",
         typeEcriture: TypeEcriture = .depense,
         montantTTC: Double = 0,
-        tauxTVA: Double = 0.081,
+        tauxTVA: Double = 0.20,
         typeTVANom: String = "",
-        typeTVACaseFormulaire: String = "",
         centreDeCout: CentreDeCout? = nil,
         categorie: Categorie? = nil
     ) {
@@ -45,7 +43,6 @@ final class Ecriture {
         self.montantTTC = montantTTC
         self.tauxTVA = tauxTVA
         self.typeTVANom = typeTVANom
-        self.typeTVACaseFormulaire = typeTVACaseFormulaire
         self.centreDeCout = centreDeCout
         self.categorie = categorie
     }

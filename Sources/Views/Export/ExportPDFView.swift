@@ -57,9 +57,7 @@ struct ExportPDFView: View {
 
                 Section("Période personnalisée") {
                     DatePicker("Du", selection: $dateDebut, displayedComponents: .date)
-                        .environment(\.locale, Locale(identifier: "fr_CH"))
                     DatePicker("Au", selection: $dateFin, in: dateDebut..., displayedComponents: .date)
-                        .environment(\.locale, Locale(identifier: "fr_CH"))
                 }
 
                 Section("Aperçu") {
@@ -168,7 +166,7 @@ struct ExportPDFView: View {
 
     private func genererPDF() -> URL? {
         let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "fr_CH")
+        dateFormatter.locale = .autoupdatingCurrent
         dateFormatter.dateStyle = .short
 
         let pageRect = CGRect(x: 0, y: 0, width: 841.8, height: 595.2) // A4 Paysage

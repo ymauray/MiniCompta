@@ -30,8 +30,8 @@ final class ParametresStore {
         return (try? modelContext.fetch(descripteur)) ?? []
     }
 
-    func ajouterTypeTVA(nom: String, taux: Double, signification: String, caseFormulaire: String) {
-        let t = TypeTVA(nom: nom, taux: taux, signification: signification, caseFormulaire: caseFormulaire)
+    func ajouterTypeTVA(nom: String, taux: Double, signification: String) {
+        let t = TypeTVA(nom: nom, taux: taux, signification: signification)
         modelContext.insert(t)
         try? modelContext.save()
     }

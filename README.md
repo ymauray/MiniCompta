@@ -1,6 +1,6 @@
 # Mini Compta
 
-Application iPhone de comptabilité personnelle simple, conçue pour la Suisse (TVA CHF).
+Application iPhone de comptabilité personnelle simple.
 
 ## Fonctionnalités
 
