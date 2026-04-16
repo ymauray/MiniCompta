@@ -27,7 +27,7 @@ final class DeviseStore {
     
     static let devisesDisponibles = [
         ("EUR", "Euro (€)"),
-        ("CHF", "Franc Suisse (CHF)"),
+        ("CHF", "Franc Suisse"),
         ("USD", "Dollar US ($)"),
         ("GBP", "Livre (£)"),
         ("CAD", "Dollar CA ($)"),
