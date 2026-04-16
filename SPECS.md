@@ -21,6 +21,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Trois cartes : total recettes, total dépenses, solde
 - Graphique en barres horizontales par centre de coût (Swift Charts)
 - Graphique en donut par catégorie (Swift Charts) avec légende
+  - **Annotation lisible** : les libellés sont affichés dans des pastilles contrastées (fond noir semi-transparent) pour une visibilité optimale sur tous les supports.
 - Liste des 5 dernières écritures (tous mois confondus)
 
 ### Paramètres
@@ -34,9 +35,10 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 ### Export PDF
 
-- Sélection d'une période (date de début et de fin)
-- Aperçu du nombre d'écritures et des totaux avant génération
-- Rapport A4 : en-tête, tableau des écritures, récapitulatif
+- Sélection d'une période (date de début et de fin) avec **boutons de raccourcis rapides** (trimestre, année).
+- Aperçu du nombre d'écritures et des totaux avant génération.
+- Rapport **A4 Paysage** pour une lecture détaillée des colonnes (Date, Libellé, Centre, Type TVA, Taux, TVA, TTC).
+- **Récapitulatifs synthétiques** : affiche côte à côte les totaux par centre de coût (TTC) et par type de TVA (TVA cumulée) pour la période choisie.
 - Partage via feuille iOS (`UIActivityViewController`)
 
 ## Données de référence par défaut

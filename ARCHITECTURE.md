@@ -84,11 +84,13 @@ Trois entrées sont injectées au premier lancement (seed) : 8.1%, 2.6%, 0%.
 
 ## Export PDF
 
-`ExportPDFView` utilise **PDFKit** (Core Graphics) pour générer un rapport A4 :
-- En-tête avec période
-- Tableau des écritures (date, libellé, type, TVA, montant)
-- Totaux récapitulatifs (recettes / dépenses / solde)
-- Partagé via `UIActivityViewController`
+`ExportPDFView` utilise **PDFKit** (Core Graphics / UIKit) pour générer un rapport **A4 en format Paysage** :
+- En-tête avec période sélectionnée.
+- Tableau détaillé des écritures (date, libellé, centre, type TVA, taux, montant TVA, montant TTC).
+- Raccourcis de sélection rapide de période (trimestre, année en cours, année précédente).
+- Totaux récapitulatifs (recettes / dépenses / solde).
+- **Récapitulatifs détaillés** : les totaux par Centre de coût et par Type de TVA sont affichés côte à côte en fin de document pour une lecture synthétique.
+- Partagé via `UIActivityViewController`.
 
 ## Icône
 
