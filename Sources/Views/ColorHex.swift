@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 
 extension Color {
     init(hex: String) {
@@ -28,12 +29,13 @@ extension Color {
     }
 }
 
+@MainActor
 extension Double {
     var formatMonetaire: String {
         let f = NumberFormatter()
         f.numberStyle = .currency
-        f.currencyCode = "CHF"
-        f.locale = Locale(identifier: "fr_CH")
-        return f.string(from: NSNumber(value: self)) ?? "CHF \(self)"
+        f.currencyCode = DeviseStore.shared.codeDevise
+        f.locale = Locale.current // Utilise la locale de l'appareil (format séparateurs, décimales)
+        return f.string(from: NSNumber(value: self)) ?? "\(DeviseStore.shared.codeDevise) \(self)"
     }
 }

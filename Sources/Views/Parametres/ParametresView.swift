@@ -1,10 +1,22 @@
 import SwiftUI
 import SwiftData
+import Observation
 
 struct ParametresView: View {
     var body: some View {
+        @Bindable var deviseStore = DeviseStore.shared
+        
         NavigationStack {
             List {
+                Section("Préférences") {
+                    Picker("Devise", selection: $deviseStore.codeDevise) {
+                        ForEach(DeviseStore.devisesDisponibles, id: \.0) { code, label in
+                            Text(label).tag(code)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+
                 Section("Listes de référence") {
                     NavigationLink("Centres de coût") {
                         ListeConfigurableView<CentreDeCout>(

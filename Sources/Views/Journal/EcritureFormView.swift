@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Observation
 
 struct EcritureFormView: View {
     @Environment(\.modelContext) private var modelContext
@@ -52,7 +53,7 @@ struct EcritureFormView: View {
                         TextField("0.00", text: $montantTTCTexte)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
-                        Text("CHF")
+                        Text(DeviseStore.shared.symboleDevise)
                             .foregroundStyle(.secondary)
                     }
                 }
