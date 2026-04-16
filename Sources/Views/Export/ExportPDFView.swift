@@ -6,6 +6,7 @@ struct ExportPDFView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Ecriture.date, order: .reverse) private var ecritures: [Ecriture]
     @Query(sort: \TypeTVA.ordre) private var tousLesTypesTVA: [TypeTVA]
+    @Query(sort: \CentreDeCout.ordre) private var tousLesCentres: [CentreDeCout]
 
     @State private var dateDebut: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var dateFin: Date = .now
@@ -325,42 +326,79 @@ struct ExportPDFView: View {
         let solde = totalRecettes - totalDepenses
         let soldeStr = NSAttributedString(string: "Solde : \(solde >= 0 ? "+" : "")\(solde.formatMonetaire)", attributes: boldAttrs)
         soldeStr.draw(at: CGPoint(x: margeH, y: y))
-        y += 30
+        y += 40
 
-        // Récapitulatif TVA (uniquement taux > 0)
-        let typesAInclure = tousLesTypesTVA.filter { $0.taux > 0 }
-        if !typesAInclure.isEmpty {
-            nouvellePageSiNecessaire(hauteurRequise: 40 + CGFloat(typesAInclure.count * 15))
+        // Dessin des deux récapitulatifs côte à côte
+        let typesTVAFiltrés = tousLesTypesTVA.filter { $0.taux > 0 }
+        let hauteurCentres = CGFloat(tousLesCentres.count * 15 + 40)
+        let hauteurTVA = CGFloat(typesTVAFiltrés.count * 15 + 40)
+        let hauteurRequise = max(hauteurCentres, hauteurTVA)
+        
+        nouvellePageSiNecessaire(hauteurRequise: hauteurRequise)
+        
+        let yDebutRecaps = y
+        let xBlocGauche = margeH
+        let xBlocDroit = margeH + 350
+        let colTitreW: CGFloat = 180
+        let colValW: CGFloat = 100
+        
+        let recapTitreAttrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 11),
+            .foregroundColor: UIColor.black,
+            .underlineStyle: NSUnderlineStyle.single.rawValue
+        ]
+        
+        // --- BLOC GAUCHE : Centres de coût ---
+        if !tousLesCentres.isEmpty {
+            var yGauche = yDebutRecaps
+            NSAttributedString(string: "Récapitulatif par centre de coût", attributes: recapTitreAttrs).draw(at: CGPoint(x: xBlocGauche, y: yGauche))
+            yGauche += 20
             
-            let recapTitreAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.boldSystemFont(ofSize: 11),
-                .foregroundColor: UIColor.black,
-                .underlineStyle: NSUnderlineStyle.single.rawValue
-            ]
-            NSAttributedString(string: "Récapitulatif TVA", attributes: recapTitreAttrs).draw(at: CGPoint(x: margeH, y: y))
-            y += 20
+            for centre in tousLesCentres {
+                let totalTTC = ecrituresFiltrees
+                    .filter { $0.centreDeCout?.id == centre.id }
+                    .reduce(0) { $0 + $1.montantSigne }
+                
+                NSAttributedString(string: "\(centre.nom) :", attributes: ligneAttrs).draw(at: CGPoint(x: xBlocGauche, y: yGauche))
+                
+                let paragraphStyle = NSMutableParagraphStyle()
+                paragraphStyle.alignment = .right
+                var valAttrs = ligneAttrs
+                valAttrs[.paragraphStyle] = paragraphStyle
+                valAttrs[.foregroundColor] = totalTTC >= 0 ? UIColor.systemGreen : UIColor.systemRed
+                
+                let rect = CGRect(x: xBlocGauche + colTitreW, y: yGauche, width: colValW, height: 12)
+                let signe = totalTTC >= 0 ? "+" : ""
+                NSAttributedString(string: "\(signe)\(totalTTC.formatMonetaire)", attributes: valAttrs).draw(in: rect)
+                yGauche += 15
+            }
+        }
+        
+        // --- BLOC DROIT : TVA ---
+        if !typesTVAFiltrés.isEmpty {
+            var yDroit = yDebutRecaps
+            NSAttributedString(string: "Récapitulatif TVA", attributes: recapTitreAttrs).draw(at: CGPoint(x: xBlocDroit, y: yDroit))
+            yDroit += 20
             
-            let colTitreW: CGFloat = 180
-            let colTVAW: CGFloat = 100
-            
-            for type in typesAInclure {
+            for type in typesTVAFiltrés {
                 let totalTVA = ecrituresFiltrees
                     .filter { $0.typeTVANom == type.nom }
                     .reduce(0) { $0 + $1.montantTVA }
                 
-                let label = "TVA \(type.nom) (\(String(format: "%.1f%%", type.taux * 100))) :"
-                NSAttributedString(string: label, attributes: ligneAttrs).draw(at: CGPoint(x: margeH, y: y))
+                NSAttributedString(string: "TVA \(type.nom) (\(String(format: "%.1f%%", type.taux * 100))) :", attributes: ligneAttrs).draw(at: CGPoint(x: xBlocDroit, y: yDroit))
                 
                 let paragraphStyle = NSMutableParagraphStyle()
                 paragraphStyle.alignment = .right
                 var valAttrs = ligneAttrs
                 valAttrs[.paragraphStyle] = paragraphStyle
                 
-                let rect = CGRect(x: margeH + colTitreW, y: y, width: colTVAW, height: 12)
+                let rect = CGRect(x: xBlocDroit + colTitreW, y: yDroit, width: colValW, height: 12)
                 NSAttributedString(string: totalTVA.formatMonetaire, attributes: valAttrs).draw(in: rect)
-                y += 15
+                yDroit += 15
             }
         }
+        
+        y += hauteurRequise
 
         UIGraphicsEndPDFContext()
 
