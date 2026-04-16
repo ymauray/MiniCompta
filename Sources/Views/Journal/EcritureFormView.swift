@@ -5,7 +5,7 @@ struct EcritureFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @Query(sort: \TypeTVA.taux, order: .reverse) private var typesTVA: [TypeTVA]
+    @Query(sort: \TypeTVA.ordre) private var typesTVA: [TypeTVA]
     @Query(sort: \CentreDeCout.nom) private var centresDeCout: [CentreDeCout]
     @Query(sort: \Categorie.nom) private var categories: [Categorie]
 

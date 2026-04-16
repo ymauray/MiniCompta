@@ -26,7 +26,7 @@ final class ParametresStore {
     // MARK: - Types TVA
 
     func typesTVA() -> [TypeTVA] {
-        let descripteur = FetchDescriptor<TypeTVA>(sortBy: [SortDescriptor(\.taux, order: .reverse)])
+        let descripteur = FetchDescriptor<TypeTVA>(sortBy: [SortDescriptor(\.ordre)])
         return (try? modelContext.fetch(descripteur)) ?? []
     }
 
