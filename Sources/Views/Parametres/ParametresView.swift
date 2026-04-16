@@ -9,13 +9,15 @@ struct ParametresView: View {
                     NavigationLink("Centres de coût") {
                         ListeConfigurableView<CentreDeCout>(
                             titre: "Centres de coût",
-                            ajouterLabel: "Nouveau centre"
+                            ajouterLabel: "Nouveau centre",
+                            creerElement: { nom, couleur, ordre in CentreDeCout(nom: nom, couleurHex: couleur, ordre: ordre) }
                         )
                     }
                     NavigationLink("Catégories") {
                         ListeConfigurableView<Categorie>(
                             titre: "Catégories",
-                            ajouterLabel: "Nouvelle catégorie"
+                            ajouterLabel: "Nouvelle catégorie",
+                            creerElement: { nom, couleur, ordre in Categorie(nom: nom, couleurHex: couleur, ordre: ordre) }
                         )
                     }
                     NavigationLink("Types TVA") {
@@ -40,7 +42,7 @@ struct ParametresView: View {
 protocol ElementConfigurable: PersistentModel {
     var nom: String { get set }
     var couleurHex: String { get set }
-    init(nom: String, couleurHex: String)
+    var ordre: Int { get set }
 }
 
 extension CentreDeCout: ElementConfigurable {}
@@ -51,9 +53,10 @@ extension Categorie: ElementConfigurable {}
 struct ListeConfigurableView<T: ElementConfigurable>: View {
     let titre: String
     let ajouterLabel: String
+    let creerElement: (String, String, Int) -> T
 
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \T.nom) private var elements: [T]
+    @Query(sort: \T.ordre) private var elements: [T]
 
     @State private var afficherFormulaire = false
     @State private var nomNouveau = ""
@@ -80,9 +83,27 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .swipeActions(edge: .leading) {
+                    Button {
+                        let copie = creerElement(element.nom, element.couleurHex, elements.count)
+                        modelContext.insert(copie)
+                        try? modelContext.save()
+                    } label: {
+                        Label("Dupliquer", systemImage: "doc.on.doc")
+                    }
+                    .tint(.blue)
+                }
             }
             .onDelete { offsets in
                 for i in offsets { modelContext.delete(elements[i]) }
+                try? modelContext.save()
+            }
+            .onMove { source, destination in
+                var liste = elements
+                liste.move(fromOffsets: source, toOffset: destination)
+                for (index, element) in liste.enumerated() {
+                    element.ordre = index
+                }
                 try? modelContext.save()
             }
         }
@@ -90,13 +111,16 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
         .navigationTitle(titre)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    nomNouveau = ""
-                    couleurNouvelle = Color(.systemBlue)
-                    elementAModifier = nil
-                    afficherFormulaire = true
-                } label: {
-                    Image(systemName: "plus")
+                HStack {
+                    EditButton()
+                    Button {
+                        nomNouveau = ""
+                        couleurNouvelle = Color(.systemBlue)
+                        elementAModifier = nil
+                        afficherFormulaire = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }
@@ -110,7 +134,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                         e.nom = nomNouveau
                         e.couleurHex = couleurNouvelle.toHex()
                     } else {
-                        let nouveau = T(nom: nomNouveau, couleurHex: couleurNouvelle.toHex())
+                        let nouveau = creerElement(nomNouveau, couleurNouvelle.toHex(), elements.count)
                         modelContext.insert(nouveau)
                     }
                     try? modelContext.save()
@@ -136,6 +160,7 @@ struct FormulaireElementView: View {
             Form {
                 Section("Nom") {
                     TextField("Nom", text: $nom)
+                        .clearable($nom)
                 }
                 Section("Couleur") {
                     ColorPicker("Couleur d'affichage", selection: $couleur, supportsOpacity: false)
@@ -160,7 +185,7 @@ struct FormulaireElementView: View {
 
 struct ListeTypesTVAView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \TypeTVA.taux, order: .reverse) private var typesTVA: [TypeTVA]
+    @Query(sort: \TypeTVA.ordre) private var typesTVA: [TypeTVA]
 
     @State private var afficherFormulaire = false
     @State private var typeAModifier: TypeTVA?
@@ -186,9 +211,27 @@ struct ListeTypesTVAView: View {
                     typeAModifier = t
                     afficherFormulaire = true
                 }
+                .swipeActions(edge: .leading) {
+                    Button {
+                        let copie = TypeTVA(nom: t.nom, taux: t.taux, signification: t.signification, caseFormulaire: t.caseFormulaire, ordre: typesTVA.count)
+                        modelContext.insert(copie)
+                        try? modelContext.save()
+                    } label: {
+                        Label("Dupliquer", systemImage: "doc.on.doc")
+                    }
+                    .tint(.blue)
+                }
             }
             .onDelete { offsets in
                 for i in offsets { modelContext.delete(typesTVA[i]) }
+                try? modelContext.save()
+            }
+            .onMove { source, destination in
+                var liste = typesTVA
+                liste.move(fromOffsets: source, toOffset: destination)
+                for (index, tva) in liste.enumerated() {
+                    tva.ordre = index
+                }
                 try? modelContext.save()
             }
         }
@@ -196,16 +239,19 @@ struct ListeTypesTVAView: View {
         .navigationTitle("Types TVA")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    typeAModifier = nil
-                    afficherFormulaire = true
-                } label: {
-                    Image(systemName: "plus")
+                HStack {
+                    EditButton()
+                    Button {
+                        typeAModifier = nil
+                        afficherFormulaire = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }
         .sheet(isPresented: $afficherFormulaire) {
-            FormulaireTVAView(typeTVA: typeAModifier, onValider: {
+            FormulaireTVAView(typeTVA: typeAModifier, ordreProchain: typesTVA.count, onValider: {
                 afficherFormulaire = false
             })
         }
@@ -216,6 +262,7 @@ struct ListeTypesTVAView: View {
 
 struct FormulaireTVAView: View {
     let typeTVA: TypeTVA?
+    let ordreProchain: Int
     let onValider: () -> Void
 
     @Environment(\.modelContext) private var modelContext
@@ -236,12 +283,15 @@ struct FormulaireTVAView: View {
             Form {
                 Section("Identification") {
                     TextField("Nom (ex. Normal 8.1%)", text: $nom)
+                        .clearable($nom)
                     TextField("Description", text: $signification)
+                        .clearable($signification)
                 }
                 Section("Taux") {
                     HStack {
                         TextField("0.0", text: $tauxTexte)
                             .keyboardType(.decimalPad)
+                            .clearable($tauxTexte)
                         Text("%")
                             .foregroundStyle(.secondary)
                     }
@@ -249,6 +299,7 @@ struct FormulaireTVAView: View {
                 Section("Formulaire TVA") {
                     TextField("N° de case (optionnel)", text: $caseFormulaire)
                         .keyboardType(.numberPad)
+                        .clearable($caseFormulaire)
                 }
             }
             .navigationTitle(typeTVA == nil ? "Nouveau type TVA" : "Modifier")
@@ -281,11 +332,38 @@ struct FormulaireTVAView: View {
             t.signification = signification
             t.caseFormulaire = caseFormulaire
         } else {
-            let nouveau = TypeTVA(nom: nom, taux: tauxDecimal, signification: signification, caseFormulaire: caseFormulaire)
+            let nouveau = TypeTVA(nom: nom, taux: tauxDecimal, signification: signification, caseFormulaire: caseFormulaire, ordre: ordreProchain)
             modelContext.insert(nouveau)
         }
         try? modelContext.save()
         onValider()
         dismiss()
+    }
+}
+
+// MARK: - Modificateur champ effaçable
+
+private struct ClearableModifier: ViewModifier {
+    @Binding var text: String
+
+    func body(content: Content) -> some View {
+        HStack {
+            content
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+extension View {
+    func clearable(_ text: Binding<String>) -> some View {
+        modifier(ClearableModifier(text: text))
     }
 }
