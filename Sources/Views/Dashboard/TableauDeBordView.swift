@@ -167,11 +167,19 @@ struct TableauDeBordView: View {
                 .foregroundStyle(Color(hex: s.couleurHex))
                 .cornerRadius(4)
                 .annotation(position: .overlay) {
-                    if s.montant / (parCategorie.reduce(0) { $0 + $1.montant }) > 0.08 {
+                    let total = parCategorie.reduce(0) { $0 + $1.montant }
+                    if total > 0 && s.montant / total > 0.08 {
                         Text(s.nom)
-                            .font(.caption2.bold())
+                            .font(.system(size: 9, weight: .bold))
                             .foregroundStyle(.white)
                             .lineLimit(1)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background {
+                                Capsule()
+                                    .fill(.black.opacity(0.35))
+                                    .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                            }
                     }
                 }
             }
