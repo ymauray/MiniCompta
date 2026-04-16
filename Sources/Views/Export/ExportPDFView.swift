@@ -5,6 +5,7 @@ import PDFKit
 struct ExportPDFView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Ecriture.date, order: .reverse) private var ecritures: [Ecriture]
+    @Query(sort: \TypeTVA.ordre) private var tousLesTypesTVA: [TypeTVA]
 
     @State private var dateDebut: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var dateFin: Date = .now
@@ -169,26 +170,21 @@ struct ExportPDFView: View {
         dateFormatter.locale = Locale(identifier: "fr_CH")
         dateFormatter.dateStyle = .short
 
-        let pdfMeta = [
-            kCGPDFContextCreator: "Mini Compta",
-            kCGPDFContextAuthor: "Mini Compta"
-        ]
-
-        let pageRect = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)  // A4
+        let pageRect = CGRect(x: 0, y: 0, width: 595.2, height: 841.8) // A4
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("journal_\(Int(Date().timeIntervalSince1970)).pdf")
 
-        guard let context = CGContext(url as CFURL, mediaBox: nil, pdfMeta as CFDictionary) else { return nil }
+        // Utilisation de l'API UIKit pour le PDF (gère les coordonnées iOS)
+        UIGraphicsBeginPDFContextToFile(url.path(), pageRect, nil)
 
         let margeH: CGFloat = 40
         let margeV: CGFloat = 50
         let largeurContenu = pageRect.width - 2 * margeH
-        var y = pageRect.height - margeV
+        var y: CGFloat = margeV
 
         func nouvellePageSiNecessaire(hauteurRequise: CGFloat) {
-            if y - hauteurRequise < margeV {
-                context.endPDFPage()
-                context.beginPDFPage(nil)
-                y = pageRect.height - margeV
+            if y + hauteurRequise > pageRect.height - margeV {
+                UIGraphicsBeginPDFPage()
+                y = margeV
                 dessinerEntete()
             }
         }
@@ -199,7 +195,7 @@ struct ExportPDFView: View {
                 .foregroundColor: UIColor.black
             ]
             let titre = NSAttributedString(string: "Journal comptable", attributes: titreAttrs)
-            titre.draw(at: CGPoint(x: margeH, y: pageRect.height - margeV - 20))
+            titre.draw(at: CGPoint(x: margeH, y: y))
 
             let sousAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 11),
@@ -207,49 +203,61 @@ struct ExportPDFView: View {
             ]
             let periode = "Du \(dateFormatter.string(from: dateDebut)) au \(dateFormatter.string(from: dateFin))"
             let sous = NSAttributedString(string: periode, attributes: sousAttrs)
-            sous.draw(at: CGPoint(x: margeH, y: pageRect.height - margeV - 38))
+            sous.draw(at: CGPoint(x: margeH, y: y + 22))
 
-            y = pageRect.height - margeV - 60
+            y += 60
         }
 
-        context.beginPDFPage(nil)
+        UIGraphicsBeginPDFPage()
         dessinerEntete()
 
         // En-tête tableau
-        let colW: [CGFloat] = [70, 200, 90, 70, 90]
+        // Colonnes : Date (65), Libellé (160), Type TVA (80), Taux (45), TVA (75), TTC (90)
+        let colW: [CGFloat] = [65, 160, 80, 45, 75, 90]
         let colX: [CGFloat] = [
             margeH,
             margeH + colW[0],
             margeH + colW[0] + colW[1],
             margeH + colW[0] + colW[1] + colW[2],
-            margeH + colW[0] + colW[1] + colW[2] + colW[3]
+            margeH + colW[0] + colW[1] + colW[2] + colW[3],
+            margeH + colW[0] + colW[1] + colW[2] + colW[3] + colW[4]
         ]
-        let entetes = ["Date", "Libellé", "Type", "TVA", "Montant TTC"]
+        let entetes = ["Date", "Libellé", "Type TVA", "Taux", "Montant TVA", "Montant TTC"]
 
         nouvellePageSiNecessaire(hauteurRequise: 30)
-        context.setFillColor(UIColor.systemBlue.withAlphaComponent(0.15).cgColor)
-        context.fill(CGRect(x: margeH, y: y - 20, width: largeurContenu, height: 20))
+        if let context = UIGraphicsGetCurrentContext() {
+            context.setFillColor(UIColor.systemBlue.withAlphaComponent(0.15).cgColor)
+            context.fill(CGRect(x: margeH, y: y, width: largeurContenu, height: 20))
+        }
 
         let headerAttrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.boldSystemFont(ofSize: 9),
+            .font: UIFont.boldSystemFont(ofSize: 8),
             .foregroundColor: UIColor.black
         ]
         for (i, en) in entetes.enumerated() {
-            NSAttributedString(string: en, attributes: headerAttrs).draw(at: CGPoint(x: colX[i] + 4, y: y - 15))
+            let alignment: NSTextAlignment = i >= 3 ? .right : .left
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = alignment
+            
+            var attrs = headerAttrs
+            attrs[.paragraphStyle] = paragraphStyle
+            
+            let rect = CGRect(x: colX[i] + (i >= 3 ? -4 : 4), y: y + 5, width: colW[i], height: 15)
+            NSAttributedString(string: en, attributes: attrs).draw(in: rect)
         }
-        y -= 24
+        y += 24
 
         // Lignes
         let ligneAttrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 9),
+            .font: UIFont.systemFont(ofSize: 8),
             .foregroundColor: UIColor.black
         ]
         let montantRecetteAttrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 9),
+            .font: UIFont.systemFont(ofSize: 8),
             .foregroundColor: UIColor.systemGreen
         ]
         let montantDepenseAttrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 9),
+            .font: UIFont.systemFont(ofSize: 8),
             .foregroundColor: UIColor.systemRed
         ]
 
@@ -257,53 +265,102 @@ struct ExportPDFView: View {
             nouvellePageSiNecessaire(hauteurRequise: 18)
 
             if idx % 2 == 0 {
-                context.setFillColor(UIColor.systemGray6.cgColor)
-                context.fill(CGRect(x: margeH, y: y - 14, width: largeurContenu, height: 16))
+                if let context = UIGraphicsGetCurrentContext() {
+                    context.setFillColor(UIColor.systemGray6.cgColor)
+                    context.fill(CGRect(x: margeH, y: y, width: largeurContenu, height: 16))
+                }
             }
 
             let montantAttrs = e.typeEcriture == .recette ? montantRecetteAttrs : montantDepenseAttrs
             let signe = e.typeEcriture == .recette ? "+" : "-"
 
-            let colonnes: [(String, [NSAttributedString.Key: Any])] = [
-                (dateFormatter.string(from: e.date), ligneAttrs),
-                (String(e.libelle.prefix(35)), ligneAttrs),
-                (e.typeEcriture.label, ligneAttrs),
-                (e.typeTVANom.isEmpty ? "—" : e.typeTVANom, ligneAttrs),
-                ("\(signe)\(e.montantTTC.formatMonetaire)", montantAttrs)
+            let colonnes: [String] = [
+                dateFormatter.string(from: e.date),
+                String(e.libelle.prefix(30)),
+                e.typeTVANom.isEmpty ? "—" : e.typeTVANom,
+                String(format: "%.1f%%", e.tauxTVA * 100),
+                e.montantTVA.formatMonetaire,
+                "\(signe)\(e.montantTTC.formatMonetaire)"
             ]
-            for (i, (texte, attrs)) in colonnes.enumerated() {
-                NSAttributedString(string: texte, attributes: attrs).draw(at: CGPoint(x: colX[i] + 4, y: y - 11))
+            
+            for (i, texte) in colonnes.enumerated() {
+                let alignment: NSTextAlignment = i >= 3 ? .right : .left
+                let paragraphStyle = NSMutableParagraphStyle()
+                paragraphStyle.alignment = alignment
+                
+                var attrs = i == 5 ? montantAttrs : ligneAttrs
+                attrs[.paragraphStyle] = paragraphStyle
+                
+                let rect = CGRect(x: colX[i] + (i >= 3 ? -4 : 4), y: y + 3, width: colW[i], height: 12)
+                NSAttributedString(string: texte, attributes: attrs).draw(in: rect)
             }
-            y -= 16
+            y += 16
         }
 
         // Totaux
-        y -= 10
+        y += 10
         nouvellePageSiNecessaire(hauteurRequise: 60)
 
-        context.setStrokeColor(UIColor.systemGray3.cgColor)
-        context.setLineWidth(0.5)
-        context.move(to: CGPoint(x: margeH, y: y))
-        context.addLine(to: CGPoint(x: margeH + largeurContenu, y: y))
-        context.strokePath()
-        y -= 10
+        if let context = UIGraphicsGetCurrentContext() {
+            context.setStrokeColor(UIColor.systemGray3.cgColor)
+            context.setLineWidth(0.5)
+            context.move(to: CGPoint(x: margeH, y: y))
+            context.addLine(to: CGPoint(x: margeH + largeurContenu, y: y))
+            context.strokePath()
+        }
+        y += 10
 
         let boldAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.boldSystemFont(ofSize: 10),
             .foregroundColor: UIColor.black
         ]
         let recetteStr = NSAttributedString(string: "Recettes : +\(totalRecettes.formatMonetaire)", attributes: [.font: UIFont.boldSystemFont(ofSize: 10), .foregroundColor: UIColor.systemGreen])
-        recetteStr.draw(at: CGPoint(x: margeH, y: y - 10))
-        y -= 16
+        recetteStr.draw(at: CGPoint(x: margeH, y: y))
+        y += 16
         let depenseStr = NSAttributedString(string: "Dépenses : -\(totalDepenses.formatMonetaire)", attributes: [.font: UIFont.boldSystemFont(ofSize: 10), .foregroundColor: UIColor.systemRed])
-        depenseStr.draw(at: CGPoint(x: margeH, y: y - 10))
-        y -= 16
+        depenseStr.draw(at: CGPoint(x: margeH, y: y))
+        y += 16
         let solde = totalRecettes - totalDepenses
         let soldeStr = NSAttributedString(string: "Solde : \(solde >= 0 ? "+" : "")\(solde.formatMonetaire)", attributes: boldAttrs)
-        soldeStr.draw(at: CGPoint(x: margeH, y: y - 10))
+        soldeStr.draw(at: CGPoint(x: margeH, y: y))
+        y += 30
 
-        context.endPDFPage()
-        context.closePDF()
+        // Récapitulatif TVA (uniquement taux > 0)
+        let typesAInclure = tousLesTypesTVA.filter { $0.taux > 0 }
+        if !typesAInclure.isEmpty {
+            nouvellePageSiNecessaire(hauteurRequise: 40 + CGFloat(typesAInclure.count * 15))
+            
+            let recapTitreAttrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.boldSystemFont(ofSize: 11),
+                .foregroundColor: UIColor.black,
+                .underlineStyle: NSUnderlineStyle.single.rawValue
+            ]
+            NSAttributedString(string: "Récapitulatif TVA", attributes: recapTitreAttrs).draw(at: CGPoint(x: margeH, y: y))
+            y += 20
+            
+            let colTitreW: CGFloat = 180
+            let colTVAW: CGFloat = 100
+            
+            for type in typesAInclure {
+                let totalTVA = ecrituresFiltrees
+                    .filter { $0.typeTVANom == type.nom }
+                    .reduce(0) { $0 + $1.montantTVA }
+                
+                let label = "TVA \(type.nom) (\(String(format: "%.1f%%", type.taux * 100))) :"
+                NSAttributedString(string: label, attributes: ligneAttrs).draw(at: CGPoint(x: margeH, y: y))
+                
+                let paragraphStyle = NSMutableParagraphStyle()
+                paragraphStyle.alignment = .right
+                var valAttrs = ligneAttrs
+                valAttrs[.paragraphStyle] = paragraphStyle
+                
+                let rect = CGRect(x: margeH + colTitreW, y: y, width: colTVAW, height: 12)
+                NSAttributedString(string: totalTVA.formatMonetaire, attributes: valAttrs).draw(in: rect)
+                y += 15
+            }
+        }
+
+        UIGraphicsEndPDFContext()
 
         return url
     }
