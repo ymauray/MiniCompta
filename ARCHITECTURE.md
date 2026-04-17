@@ -43,7 +43,7 @@ Représente une ligne du journal comptable.
 | `typeTVANom` | `String` | Nom du type TVA (dénormalisé) |
 
 ### `CentreDeCout` / `Categorie`
-Listes de référence configurables. Chacune porte un `nom`, une `couleurHex` (ex. `#5E9BF0`) et un `ordre` (entier pour le tri manuel). Relation inverse avec `Ecriture` (deleteRule `.nullify`).
+Listes de référence configurables. Chacune porte un `id` (UUID unique pour l'import/export), un `nom`, une `couleurHex` (ex. `#5E9BF0`) et un `ordre` (entier pour le tri manuel). Relation inverse avec `Ecriture` (deleteRule `.nullify`).
 
 ### `TypeTVA`
 Taux TVA configurables avec métadonnées.
@@ -81,6 +81,12 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe les DTO (
 - Fournit le symbole de la devise pour les formateurs numériques
 
 > Les vues utilisent directement `@Query` de SwiftData pour les listes simples (performances optimales). Les Stores sont réservés aux opérations avec logique ou calculs.
+
+## Conventions de développement (I.A.)
+
+- **Commits** : Les agents I.A. ne doivent **jamais** committer de changements sans une invitation explicite de l'utilisateur.
+- **Bruit** : Il est inutile de proposer de committer à chaque modification ; l'utilisateur donnera le signal quand il le jugera nécessaire.
+- **Validation** : Toujours compiler le projet (`xcodebuild`) après une modification pour valider la syntaxe.
 
 ## Navigation
 

@@ -27,3 +27,10 @@ Exemples :
 
 Les faux positifs SourceKit (erreurs dans l'éditeur après génération) se résolvent
 en fermant et rouvrant le projet Xcode, ou en relançant `xcodegen generate`.
+
+## Commandes utiles
+
+- **Générer le projet** : `xcodegen generate`
+- **Générer l'icône** : `swift GenerateIcon.swift`
+- **Compiler** : `xcodebuild -project MiniCompta.xcodeproj -scheme MiniCompta -sdk iphonesimulator -quiet build`
+- **Tester** : `xcodebuild test -project MiniCompta.xcodeproj -scheme MiniCompta -sdk iphonesimulator -quiet`
