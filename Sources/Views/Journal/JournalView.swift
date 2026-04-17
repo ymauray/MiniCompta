@@ -175,7 +175,7 @@ struct LigneEcriture: View {
                             .font(.body.bold())
                             .foregroundStyle(couleurMontant)
                         
-                        if ecriture.tauxTVA > 0 {
+                        if !ecriture.typeTVANom.isEmpty {
                             Text("TVA \(ecriture.typeTVANom)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)

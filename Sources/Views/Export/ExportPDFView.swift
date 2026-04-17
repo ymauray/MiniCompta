@@ -327,9 +327,9 @@ struct ExportPDFView: View {
         y += 40
 
         // Dessin des deux récapitulatifs côte à côte
-        let typesTVAFiltrés = tousLesTypesTVA.filter { $0.taux > 0 }
+        let typesTVAAfficher = tousLesTypesTVA.filter { $0.taux > 0 }
         let hauteurCentres = CGFloat(tousLesCentres.count * 15 + 40)
-        let hauteurTVA = CGFloat(typesTVAFiltrés.count * 15 + 40)
+        let hauteurTVA = CGFloat(typesTVAAfficher.count * 15 + 40)
         let hauteurRequise = max(hauteurCentres, hauteurTVA)
         
         nouvellePageSiNecessaire(hauteurRequise: hauteurRequise)
@@ -373,12 +373,12 @@ struct ExportPDFView: View {
         }
         
         // --- BLOC DROIT : TVA ---
-        if !typesTVAFiltrés.isEmpty {
+        if !typesTVAAfficher.isEmpty {
             var yDroit = yDebutRecaps
             NSAttributedString(string: "Récapitulatif TVA", attributes: recapTitreAttrs).draw(at: CGPoint(x: xBlocDroit, y: yDroit))
             yDroit += 20
             
-            for type in typesTVAFiltrés {
+            for type in typesTVAAfficher {
                 let totalTVA = ecrituresFiltrees
                     .filter { $0.typeTVANom == type.nom }
                     .reduce(0) { $0 + $1.montantTVA }
