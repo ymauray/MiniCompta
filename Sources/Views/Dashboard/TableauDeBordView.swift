@@ -142,7 +142,17 @@ struct TableauDeBordView: View {
                 .foregroundStyle(Color(hex: s.couleurHex))
                 .cornerRadius(4)
             }
-            .chartXAxis(.hidden)
+            .chartXAxis {
+                let maxMontant = parCentre.map(\.montant).max() ?? 0
+                AxisMarks { value in
+                    AxisGridLine()
+                    if let d = value.as(Double.self), d > 0 && d < maxMontant * 0.9 {
+                        AxisValueLabel {
+                            Text(d.formatMonetaire).font(.caption2)
+                        }
+                    }
+                }
+            }
             .frame(height: CGFloat(max(120, parCentre.count * 44)))
         }
     }
