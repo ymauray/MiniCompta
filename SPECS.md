@@ -43,7 +43,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Sélection d'une période (date de début et de fin) avec **boutons de raccourcis rapides** (trimestre, année).
 - Aperçu du nombre d'écritures et des totaux avant génération.
 - Rapport **A4 Paysage** pour une lecture détaillée des colonnes (Date, Libellé, Centre, Type TVA, Taux, TVA, TTC).
-- **Récapitulatifs synthétiques** : affiche côte à côte les totaux par centre de coût (TTC) et par type de TVA (TVA cumulée) pour la période choisie.
+- **Récapitulatifs synthétiques** : affiche côte à côte les totaux par centre de coût (TTC) et par type de TVA (pour les taux strictement positifs) pour la période choisie.
 - Partage via feuille iOS (`UIActivityViewController`)
 
 ## Données de référence par défaut
@@ -71,4 +71,6 @@ Les centres de coût et les catégories démarrent vides (tout est configurable)
 - Synchronisation iCloud / multi-appareils
 - Import depuis Excel ou CSV
 - Comptabilité double entrée (grand livre, bilan)
+- Notifications / rappels
+� double entrée (grand livre, bilan)
 - Notifications / rappels
