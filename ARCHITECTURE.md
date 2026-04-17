@@ -58,7 +58,7 @@ Taux TVA configurables avec métadonnées.
 Des entrées sont injectées au premier lancement (seed) : 20%, 5.5%, 0%.
 
 ### `DonneesSauvegarde`
-Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe les DTO (Data Transfer Objects) de toutes les entités pour garantir une sérialisation stable indépendante du contexte SwiftData.
+Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe le code de la devise et les DTO (Data Transfer Objects) de toutes les entités pour garantir une sérialisation stable indépendante du contexte SwiftData.
 
 ## Stores
 
@@ -90,10 +90,10 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe les DTO (
 
 ## Navigation
 
-`ContentView` est un `TabView` à 3 onglets :
+`ContentView` est un `TabView` à 3 onglets. Une `@State` propriété `selection` est utilisée pour définir l'onglet par défaut (Journal).
 
 1. **Tableau de bord** (`TableauDeBordView`) — graphiques Swift Charts, navigation mensuelle
-2. **Journal** (`JournalView`) → `EcritureFormView` (ajout / modification)
+2. **Journal** (`JournalView`) [Sélectionné par défaut] → `EcritureFormView` (ajout / modification)
    - Les écritures sont affichées sur 3 lignes : libellé (gras), date/montant, et pastilles (badges).
 3. **Paramètres** (`ParametresView`) → choix de la devise + listes configurables + export PDF
    - Supporte la réorganisation manuelle (drag-and-drop) et la duplication (swipe).
