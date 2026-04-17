@@ -142,15 +142,7 @@ struct TableauDeBordView: View {
                 .foregroundStyle(Color(hex: s.couleurHex))
                 .cornerRadius(4)
             }
-            .chartXAxis {
-                AxisMarks(preset: .aligned) { v in
-                    AxisValueLabel {
-                        if let d = v.as(Double.self) {
-                            Text(d.formatMonetaire).font(.caption2)
-                        }
-                    }
-                }
-            }
+            .chartXAxis(.hidden)
             .frame(height: CGFloat(max(120, parCentre.count * 44)))
         }
     }
