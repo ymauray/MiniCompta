@@ -7,6 +7,7 @@ Application iPhone de comptabilité personnelle simple.
 - **Journal d'écritures** — saisie de recettes et dépenses avec calcul automatique TVA (HT, TVA, TTC)
 - **Tableau de bord** — vue mensuelle avec graphiques par centre de coût et par catégorie
 - **Paramètres configurables** — centres de coût, catégories et types TVA entièrement personnalisables
+- **Sauvegarde & Restauration** — export/import JSON pour sécuriser ses données et réinitialisation complète
 - **Export PDF** — génération d'un rapport sur une période choisie, partageable via iOS
 
 ## Prérequis

@@ -57,6 +57,9 @@ Taux TVA configurables avec métadonnées.
 
 Des entrées sont injectées au premier lancement (seed) : 20%, 5.5%, 0%.
 
+### `DonneesSauvegarde`
+Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe les DTO (Data Transfer Objects) de toutes les entités pour garantir une sérialisation stable indépendante du contexte SwiftData.
+
 ## Stores
 
 ### `JournalStore`
@@ -69,6 +72,8 @@ Des entrées sont injectées au premier lancement (seed) : 20%, 5.5%, 0%.
 - CRUD pour `TypeTVA`, `CentreDeCout`, `Categorie`
 - Seed automatique des types TVA au premier lancement
 - Tri des éléments selon leur propriété `ordre`
+- **Import / Export** : Génération et lecture de fichiers JSON de sauvegarde
+- **Réinitialisation** : Suppression massive et sécurisée de toutes les données de l'application
 
 ### `DeviseStore`
 - Gère la devise de l'application (EUR, USD, etc.)

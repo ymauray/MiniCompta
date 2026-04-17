@@ -32,6 +32,10 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Gestion CRUD des types TVA (nom, taux, signification)
 - **Tri manuel** par drag-and-drop pour toutes les listes de référence
 - **Duplication rapide** d'un élément via swipe
+- **Sauvegarde & Import (JSON)** : permet d'exporter l'intégralité des données de l'application ou de les restaurer depuis un fichier.
+  - *Sécurité* : avertissement explicite sur la responsabilité de l'utilisateur lors de l'export.
+  - *Validation* : confirmation critique avant l'importation (écrasement des données).
+- **Réinitialisation** : option pour effacer toutes les données et remettre l'application à zéro (avec confirmation).
 - Accès à l'export PDF
 
 ### Export PDF
