@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 import Observation
 import UniformTypeIdentifiers
-
 struct ParametresView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var afficherAlerteExport = false
@@ -10,15 +9,19 @@ struct ParametresView: View {
     @State private var urlExport: URL?
     @State private var afficherShareSheet = false
     @State private var afficherFileImporter = false
-    
+    @State private var afficherAlerteReinitialisation = false
+    @State private var afficherConfirmationImport = false
+    @State private var afficherConfirmationReinitialisation = false
+
+    // On garde une seule instance du store pour la durée de vie de la vue
+    @State private var store: ParametresStore?
     var body: some View {
-        @Bindable var deviseStore = DeviseStore.shared
-        let store = ParametresStore(modelContext: modelContext)
-        
+        let currentStore = store ?? ParametresStore(modelContext: modelContext)
+
         NavigationStack {
             List {
                 Section("Préférences") {
-                    Picker("Devise", selection: $deviseStore.codeDevise) {
+                    Picker("Devise", selection: Bindable(DeviseStore.shared).codeDevise) {
                         ForEach(DeviseStore.devisesDisponibles, id: \.0) { code, label in
                             Text(label).tag(code)
                         }
@@ -65,12 +68,20 @@ struct ParametresView: View {
                         Label("Importer des données (JSON)", systemImage: "square.and.arrow.down")
                     }
                 }
+
+                Section {
+                    Button(role: .destructive) {
+                        afficherAlerteReinitialisation = true
+                    } label: {
+                        Label("Réinitialiser l'application", systemImage: "trash")
+                    }
+                }
             }
             .navigationTitle("Paramètres")
             .listStyle(.insetGrouped)
             .alert("Sécurité des données", isPresented: $afficherAlerteExport) {
                 Button("Continuer") {
-                    if let url = store.exporterDonnees() {
+                    if let url = currentStore.exporterDonnees() {
                         urlExport = url
                         afficherShareSheet = true
                     }
@@ -92,6 +103,31 @@ struct ParametresView: View {
                     ShareSheet(activityItems: [url])
                 }
             }
+            .alert("Réinitialiser l'application ?", isPresented: $afficherAlerteReinitialisation) {
+                Button("Tout effacer", role: .destructive) {
+                    do {
+                        try currentStore.reinitialiserToutesLesDonnees()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            afficherConfirmationReinitialisation = true
+                        }
+                    } catch {
+                        print("Erreur lors de la réinitialisation : \(error)")
+                    }
+                }
+                Button("Annuler", role: .cancel) { }
+            } message: {
+                Text("Cette action va supprimer TOUTES vos écritures, catégories, centres de coût et types de TVA. Vous retrouverez l'application dans son état d'origine.")
+            }
+            .alert("Importation réussie", isPresented: $afficherConfirmationImport) {
+                Button("OK") { }
+            } message: {
+                Text("Vos données ont été restaurées avec succès.")
+            }
+            .alert("Réinitialisation terminée", isPresented: $afficherConfirmationReinitialisation) {
+                Button("OK") { }
+            } message: {
+                Text("L'application a été remise dans son état d'origine.")
+            }
             .fileImporter(
                 isPresented: $afficherFileImporter,
                 allowedContentTypes: [.json],
@@ -104,7 +140,10 @@ struct ParametresView: View {
                             // Nécessaire pour accéder aux fichiers hors bac à sable
                             if url.startAccessingSecurityScopedResource() {
                                 defer { url.stopAccessingSecurityScopedResource() }
-                                try store.importerDonnees(depuis: url)
+                                try currentStore.importerDonnees(depuis: url)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    afficherConfirmationImport = true
+                                }
                             }
                         } catch {
                             print("Erreur d'import : \(error)")
@@ -112,6 +151,11 @@ struct ParametresView: View {
                     }
                 case .failure(let error):
                     print("Erreur sélection fichier : \(error)")
+                }
+            }
+            .onAppear {
+                if store == nil {
+                    store = ParametresStore(modelContext: modelContext)
                 }
             }
         }

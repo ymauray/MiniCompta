@@ -176,4 +176,29 @@ final class ParametresStore {
         
         try modelContext.save()
     }
+
+    func reinitialiserToutesLesDonnees() throws {
+        // 1. Déconnecter les relations pour éviter les erreurs de "nullify" pendant la suppression massive
+        let descripteur = FetchDescriptor<Ecriture>()
+        let ecritures = try modelContext.fetch(descripteur)
+        for e in ecritures {
+            e.categorie = nil
+            e.centreDeCout = nil
+        }
+        try modelContext.save()
+
+        // 2. Suppression massive
+        try modelContext.delete(model: Ecriture.self)
+        try modelContext.delete(model: Categorie.self)
+        try modelContext.delete(model: CentreDeCout.self)
+        try modelContext.delete(model: TypeTVA.self)
+        
+        try modelContext.save()
+        
+        // 3. Réinjection des données de base
+        for tva in TypeTVA.seedData {
+            modelContext.insert(tva)
+        }
+        try modelContext.save()
+    }
 }
