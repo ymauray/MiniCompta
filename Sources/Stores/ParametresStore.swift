@@ -79,6 +79,7 @@ final class ParametresStore {
 
     // MARK: - Sauvegarde & Import
 
+    @MainActor
     func exporterDonnees() -> URL? {
         do {
             let fetchCategories = FetchDescriptor<Categorie>()
@@ -96,6 +97,7 @@ final class ParametresStore {
             let backup = DonneesSauvegarde(
                 version: 1,
                 dateExport: .now,
+                codeDevise: DeviseStore.shared.codeDevise,
                 categories: categories.map { .init(id: $0.id, nom: $0.nom, couleurHex: $0.couleurHex, ordre: $0.ordre) },
                 centresDeCout: centres.map { .init(id: $0.id, nom: $0.nom, couleurHex: $0.couleurHex, ordre: $0.ordre) },
                 typesTVA: tvas.map { .init(nom: $0.nom, taux: $0.taux, signification: $0.signification, ordre: $0.ordre) },
@@ -125,7 +127,8 @@ final class ParametresStore {
         }
     }
 
-    func importerDonnees(depuis url: URL) throws {
+    @MainActor
+    func importerDonnees(depuis url: URL) async throws {
         let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -137,7 +140,12 @@ final class ParametresStore {
         try modelContext.delete(model: CentreDeCout.self)
         try modelContext.delete(model: TypeTVA.self)
         
-        // 2. Réinsérer les listes de référence et créer des dictionnaires pour reconnecter
+        // 2. Restaurer la devise
+        if let code = backup.codeDevise {
+            DeviseStore.shared.codeDevise = code
+        }
+        
+        // 3. Réinsérer les listes de référence et créer des dictionnaires pour reconnecter
         var catMap: [UUID: Categorie] = [:]
         for cDTO in backup.categories {
             let c = Categorie(nom: cDTO.nom, couleurHex: cDTO.couleurHex, ordre: cDTO.ordre)
@@ -177,7 +185,8 @@ final class ParametresStore {
         try modelContext.save()
     }
 
-    func reinitialiserToutesLesDonnees() throws {
+    @MainActor
+    func reinitialiserToutesLesDonnees() async throws {
         // 1. Déconnecter les relations pour éviter les erreurs de "nullify" pendant la suppression massive
         let descripteur = FetchDescriptor<Ecriture>()
         let ecritures = try modelContext.fetch(descripteur)
@@ -199,6 +208,12 @@ final class ParametresStore {
         for tva in TypeTVA.seedData {
             modelContext.insert(tva)
         }
+        
+        // 4. Réinitialisation de la devise
+        await MainActor.run {
+            DeviseStore.shared.codeDevise = "EUR"
+        }
+        
         try modelContext.save()
     }
 }

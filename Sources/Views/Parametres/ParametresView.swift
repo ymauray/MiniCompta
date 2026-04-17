@@ -105,13 +105,15 @@ struct ParametresView: View {
             }
             .alert("Réinitialiser l'application ?", isPresented: $afficherAlerteReinitialisation) {
                 Button("Tout effacer", role: .destructive) {
-                    do {
-                        try currentStore.reinitialiserToutesLesDonnees()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            afficherConfirmationReinitialisation = true
+                    Task {
+                        do {
+                            try await currentStore.reinitialiserToutesLesDonnees()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                afficherConfirmationReinitialisation = true
+                            }
+                        } catch {
+                            print("Erreur lors de la réinitialisation : \(error)")
                         }
-                    } catch {
-                        print("Erreur lors de la réinitialisation : \(error)")
                     }
                 }
                 Button("Annuler", role: .cancel) { }
@@ -136,17 +138,19 @@ struct ParametresView: View {
                 switch result {
                 case .success(let urls):
                     if let url = urls.first {
-                        do {
-                            // Nécessaire pour accéder aux fichiers hors bac à sable
-                            if url.startAccessingSecurityScopedResource() {
-                                defer { url.stopAccessingSecurityScopedResource() }
-                                try currentStore.importerDonnees(depuis: url)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    afficherConfirmationImport = true
+                        Task {
+                            do {
+                                // Nécessaire pour accéder aux fichiers hors bac à sable
+                                if url.startAccessingSecurityScopedResource() {
+                                    defer { url.stopAccessingSecurityScopedResource() }
+                                    try await currentStore.importerDonnees(depuis: url)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        afficherConfirmationImport = true
+                                    }
                                 }
+                            } catch {
+                                print("Erreur d'import : \(error)")
                             }
-                        } catch {
-                            print("Erreur d'import : \(error)")
                         }
                     }
                 case .failure(let error):
