@@ -3,6 +3,7 @@ import Foundation
 
 @Model
 final class CentreDeCout {
+    var id: UUID = UUID()
     var nom: String
     var couleurHex: String
     var ordre: Int
@@ -11,6 +12,7 @@ final class CentreDeCout {
     var ecritures: [Ecriture] = []
 
     init(nom: String, couleurHex: String = "#5E9BF0", ordre: Int = 0) {
+        self.id = UUID()
         self.nom = nom
         self.couleurHex = couleurHex
         self.ordre = ordre

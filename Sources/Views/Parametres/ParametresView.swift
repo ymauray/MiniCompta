@@ -1,10 +1,19 @@
 import SwiftUI
 import SwiftData
 import Observation
+import UniformTypeIdentifiers
 
 struct ParametresView: View {
+    @Environment(\.modelContext) private var modelContext
+    @State private var afficherAlerteExport = false
+    @State private var afficherAlerteImport = false
+    @State private var urlExport: URL?
+    @State private var afficherShareSheet = false
+    @State private var afficherFileImporter = false
+    
     var body: some View {
         @Bindable var deviseStore = DeviseStore.shared
+        let store = ParametresStore(modelContext: modelContext)
         
         NavigationStack {
             List {
@@ -42,9 +51,69 @@ struct ParametresView: View {
                         ExportPDFView()
                     }
                 }
+
+                Section(header: Text("Sauvegarde & Import"), footer: Text("L'importation remplacera toutes vos données actuelles par celles du fichier sélectionné.")) {
+                    Button {
+                        afficherAlerteExport = true
+                    } label: {
+                        Label("Exporter toutes les données (JSON)", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Button(role: .destructive) {
+                        afficherAlerteImport = true
+                    } label: {
+                        Label("Importer des données (JSON)", systemImage: "square.and.arrow.down")
+                    }
+                }
             }
             .navigationTitle("Paramètres")
             .listStyle(.insetGrouped)
+            .alert("Sécurité des données", isPresented: $afficherAlerteExport) {
+                Button("Continuer") {
+                    if let url = store.exporterDonnees() {
+                        urlExport = url
+                        afficherShareSheet = true
+                    }
+                }
+                Button("Annuler", role: .cancel) { }
+            } message: {
+                Text("Une fois exportées, vos données comptables ne sont plus protégées par le bac à sable de l'application. Vous êtes seul responsable de leur sécurité et de leur confidentialité.")
+            }
+            .alert("Confirmer l'importation", isPresented: $afficherAlerteImport) {
+                Button("Sélectionner le fichier", role: .destructive) {
+                    afficherFileImporter = true
+                }
+                Button("Annuler", role: .cancel) { }
+            } message: {
+                Text("Cette opération va supprimer DÉFINITIVEMENT toutes les écritures et listes de référence actuelles pour les remplacer par celles du fichier importé. Cette action est irréversible.")
+            }
+            .sheet(isPresented: $afficherShareSheet) {
+                if let url = urlExport {
+                    ShareSheet(activityItems: [url])
+                }
+            }
+            .fileImporter(
+                isPresented: $afficherFileImporter,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first {
+                        do {
+                            // Nécessaire pour accéder aux fichiers hors bac à sable
+                            if url.startAccessingSecurityScopedResource() {
+                                defer { url.stopAccessingSecurityScopedResource() }
+                                try store.importerDonnees(depuis: url)
+                            }
+                        } catch {
+                            print("Erreur d'import : \(error)")
+                        }
+                    }
+                case .failure(let error):
+                    print("Erreur sélection fichier : \(error)")
+                }
+            }
         }
     }
 }
