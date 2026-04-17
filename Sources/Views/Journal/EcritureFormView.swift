@@ -7,8 +7,8 @@ struct EcritureFormView: View {
     @Environment(\.dismiss) private var dismiss
 
     @Query(sort: \TypeTVA.ordre) private var typesTVA: [TypeTVA]
-    @Query(sort: \CentreDeCout.nom) private var centresDeCout: [CentreDeCout]
-    @Query(sort: \Categorie.nom) private var categories: [Categorie]
+    @Query(sort: \CentreDeCout.ordre) private var centresDeCout: [CentreDeCout]
+    @Query(sort: \Categorie.ordre) private var categories: [Categorie]
 
     var ecritureExistante: Ecriture?
 
