@@ -14,13 +14,70 @@ final class ParametresStore {
     // MARK: - Seed initial
 
     private func seedSiNecessaire() {
+        // 1. Seed des types TVA (toujours nécessaire si vide)
         let descripteur = FetchDescriptor<TypeTVA>()
         let count = (try? modelContext.fetchCount(descripteur)) ?? 0
-        guard count == 0 else { return }
-        for tva in TypeTVA.seedData {
-            modelContext.insert(tva)
+        if count == 0 {
+            for tva in TypeTVA.seedData {
+                modelContext.insert(tva)
+            }
         }
+
+        // 2. Injection des données de démo (une seule fois au premier lancement ET si vide)
+        let dejaInjecte = UserDefaults.standard.bool(forKey: "app.demo_donnees_injectees")
+        let fetchEcritures = FetchDescriptor<Ecriture>()
+        let nbEcritures = (try? modelContext.fetchCount(fetchEcritures)) ?? 0
+
+        if !dejaInjecte && nbEcritures == 0 {
+            injecterDonneesDemo()
+            UserDefaults.standard.set(true, forKey: "app.demo_donnees_injectees")
+            // Signal pour l'affichage du message dans la vue
+            UserDefaults.standard.set(true, forKey: "app.doit_afficher_message_demo")
+        }
+
         try? modelContext.save()
+    }
+
+    private func injecterDonneesDemo() {
+        // Catégories
+        let catLogiciel = Categorie(nom: "Logiciel", couleurHex: "#5E9BF0")
+        let catMateriel = Categorie(nom: "Matériel", couleurHex: "#F0825E")
+        let catServices = Categorie(nom: "Services", couleurHex: "#7BC67E")
+        [catLogiciel, catMateriel, catServices].forEach { modelContext.insert($0) }
+
+        // Centres de coût
+        let centreStructure = CentreDeCout(nom: "Structure", couleurHex: "#9B59B6")
+        let centreProduit = CentreDeCout(nom: "Produit 1", couleurHex: "#E74C3C")
+        [centreStructure, centreProduit].forEach { modelContext.insert($0) }
+
+        // Récupération des types TVA injectés juste avant
+        let tvas = TypeTVA.seedData // On utilise les mêmes noms/taux pour la démo
+
+        // Génération d'écritures sur les 7 derniers jours
+        let libelles = ["Achat licence IDE", "Serveur Cloud mensuel", "Nouvel écran 4K", "Consulting Architecture", "Fournitures bureau", "Vente licence Pro", "Maintenance site web"]
+        let montants = [150.0, 45.0, 450.0, 1200.0, 35.0, 500.0, 200.0]
+        
+        for i in 0..<7 {
+            let date = Calendar.current.date(byAdding: .day, value: -i, to: .now) ?? .now
+            let type: TypeEcriture = (i == 5) ? .recette : .depense // La 6ème est une recette
+            
+            // On alterne les combinaisons
+            let tva = tvas[i % tvas.count]
+            let cat = i % 2 == 0 ? catLogiciel : (i % 3 == 0 ? catMateriel : catServices)
+            let centre = i % 2 == 0 ? centreStructure : centreProduit
+
+            let e = Ecriture(
+                date: date,
+                libelle: libelles[i],
+                typeEcriture: type,
+                montantTTC: montants[i],
+                tauxTVA: tva.taux,
+                typeTVANom: tva.nom,
+                centreDeCout: centre,
+                categorie: cat
+            )
+            modelContext.insert(e)
+        }
     }
 
     // MARK: - Types TVA
