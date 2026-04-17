@@ -82,13 +82,13 @@ final class ParametresStore {
     @MainActor
     func exporterDonnees() -> URL? {
         do {
-            let fetchCategories = FetchDescriptor<Categorie>()
+            let fetchCategories = FetchDescriptor<Categorie>(sortBy: [SortDescriptor(\.ordre)])
             let categories = try modelContext.fetch(fetchCategories)
             
-            let fetchCentres = FetchDescriptor<CentreDeCout>()
+            let fetchCentres = FetchDescriptor<CentreDeCout>(sortBy: [SortDescriptor(\.ordre)])
             let centres = try modelContext.fetch(fetchCentres)
             
-            let fetchTVA = FetchDescriptor<TypeTVA>()
+            let fetchTVA = FetchDescriptor<TypeTVA>(sortBy: [SortDescriptor(\.ordre)])
             let tvas = try modelContext.fetch(fetchTVA)
             
             let fetchEcritures = FetchDescriptor<Ecriture>()
