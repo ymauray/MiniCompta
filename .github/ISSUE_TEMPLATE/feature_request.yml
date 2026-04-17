@@ -1,0 +1,29 @@
+name: Demande de fonctionnalité
+description: Proposer une nouvelle fonctionnalité
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Merci de décrire votre demande de fonctionnalité.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème
+      description: Quel problème cette fonctionnalité résoudrait-elle ?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Décrivez la fonctionnalité souhaitée.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considérées
+      description: Avez-vous envisagé d'autres solutions ?
+    validations:
+      required: false
