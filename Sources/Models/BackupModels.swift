@@ -4,6 +4,7 @@ import Foundation
 struct DonneesSauvegarde: Codable {
     let version: Int
     let dateExport: Date
+    let codeDevise: String?
     let categories: [CategorieDTO]
     let centresDeCout: [CentreDeCoutDTO]
     let typesTVA: [TypeTVADTO]
