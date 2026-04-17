@@ -71,6 +71,7 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe le code d
 ### ParametresStore
 - CRUD pour `TypeTVA`, `CentreDeCout`, `Categorie`
 - Seed automatique des types TVA au premier lancement
+- **Données de démonstration** : Injection automatique de catégories, centres de coût et écritures au premier lancement si la base est vide. Un message d'information est affiché à l'utilisateur lors de cette opération.
 - Tri des éléments selon leur propriété `ordre`
 - **Import / Export** : Génération et lecture de fichiers JSON de sauvegarde
 - **Réinitialisation** : Suppression massive et sécurisée de toutes les données de l'application

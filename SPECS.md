@@ -48,15 +48,15 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 ## Données de référence par défaut
 
-Les types TVA suivants sont pré-chargés au premier lancement :
+### Initialisation automatique
+Lors du premier lancement de l'application (et si aucune écriture n'existe), les données suivantes sont injectées automatiquement pour permettre une découverte immédiate de l'application :
 
-| Nom | Taux |
-|---|---|
-| Normal 20% | 20% |
-| Réduit 5.5% | 5.5% |
-| Exonéré 0% | 0% |
+1. **Types TVA** : Normal 20%, Réduit 5.5%, Exonéré 0%.
+2. **Catégories** : Logiciel, Matériel, Services.
+3. **Centres de coût** : Structure, Produit 1.
+4. **Journal** : 7 écritures de démonstration réparties sur les 7 derniers jours (6 dépenses et 1 recette).
 
-Les centres de coût et les catégories démarrent vides (tout est configurable).
+Un message d'information est affiché à l'utilisateur lors de cette première injection. Les données peuvent être modifiées ou supprimées dans les paramètres, ou l'application peut être remise à zéro via l'option de réinitialisation.
 
 ## Contraintes techniques
 
@@ -72,5 +72,5 @@ Les centres de coût et les catégories démarrent vides (tout est configurable)
 - Import depuis Excel ou CSV
 - Comptabilité double entrée (grand livre, bilan)
 - Notifications / rappels
-� double entrée (grand livre, bilan)
+� double entrée (grand livre, bilan)
 - Notifications / rappels

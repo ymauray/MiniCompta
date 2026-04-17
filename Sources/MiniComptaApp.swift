@@ -10,6 +10,8 @@ struct MiniComptaApp: App {
             container = try ModelContainer(
                 for: Ecriture.self, CentreDeCout.self, Categorie.self, TypeTVA.self
             )
+            // Déclenche l'injection des données (types TVA et démo si nécessaire)
+            _ = ParametresStore(modelContext: container.mainContext)
         } catch {
             fatalError("Impossible de créer le ModelContainer : \(error)")
         }
