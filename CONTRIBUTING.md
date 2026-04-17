@@ -8,6 +8,14 @@
 4. Vérifier que le projet compile (`⌘B` dans Xcode ou `xcodebuild`)
 5. Créer une Pull Request vers `main`
 
+### Protection de la branche `main`
+
+La branche `main` est protégée. Pour fusionner vos modifications :
+- Obtenir **une approbation** d'un autre contributeur.
+- Avoir un passage réussi du workflow CI **Build and Test**.
+- Résoudre toutes les conversations dans la Pull Request.
+- Les push directs et les force-push sont interdits.
+
 ## Conventions de commits
 
 Ce projet utilise [Conventional Commits](https://www.conventionalcommits.org/) en **français**.

@@ -52,6 +52,7 @@ Sources/
 ## Conventions
 
 - Commits : [Conventional Commits](https://www.conventionalcommits.org/) en français
+- Branche `main` protégée (Pull Request + CI obligatoires)
 - Pas de force unwrap (`!`) — utiliser `guard let` / `if let`
 - Mutations d'état uniquement via les Stores (`@Observable`)
 - Aucune logique métier dans les vues SwiftUI
