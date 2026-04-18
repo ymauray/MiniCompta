@@ -74,7 +74,9 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe le code d
 - **Données de démonstration** : Injection automatique de catégories, centres de coût et écritures au premier lancement si la base est vide. Un message d'information est affiché à l'utilisateur lors de cette opération.
 - Tri des éléments selon leur propriété `ordre`
 - **Import / Export** : Génération et lecture de fichiers JSON de sauvegarde
-- **Réinitialisation** : Suppression massive et sécurisée de toutes les données de l'application
+- **Réinitialisation** : Suppression massive et sécurisée de toutes les données de l'application via la méthode privée `effacerTout()`.
+
+> **Note technique sur la suppression** : Pour éviter les erreurs de type `Batch delete failed due to mandatory OTO nullify inverse`, la suppression massive doit toujours être précédée d'une rupture manuelle des relations (`e.categorie = nil`) suivie d'un `modelContext.save()`. Une méthode centralisée `effacerTout()` gère cette séquence.
 
 ### `DeviseStore`
 - Gère la devise de l'application (EUR, USD, etc.)
