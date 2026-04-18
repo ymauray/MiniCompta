@@ -191,11 +191,8 @@ final class ParametresStore {
         decoder.dateDecodingStrategy = .iso8601
         let backup = try decoder.decode(DonneesSauvegarde.self, from: data)
         
-        // 1. Tout effacer (ordre important pour les relations)
-        try modelContext.delete(model: Ecriture.self)
-        try modelContext.delete(model: Categorie.self)
-        try modelContext.delete(model: CentreDeCout.self)
-        try modelContext.delete(model: TypeTVA.self)
+        // 1. Tout effacer proprement
+        try effacerTout()
         
         // 2. Restaurer la devise
         if let code = backup.codeDevise {
@@ -224,7 +221,7 @@ final class ParametresStore {
             modelContext.insert(t)
         }
         
-        // 3. Réinsérer les écritures
+        // 4. Réinsérer les écritures
         for eDTO in backup.ecritures {
             let e = Ecriture(
                 date: eDTO.date,
@@ -244,6 +241,23 @@ final class ParametresStore {
 
     @MainActor
     func reinitialiserToutesLesDonnees() async throws {
+        // 1. Tout effacer proprement
+        try effacerTout()
+        
+        // 2. Réinjection des données de base
+        for tva in TypeTVA.seedData {
+            modelContext.insert(tva)
+        }
+        
+        // 3. Réinitialisation de la devise
+        DeviseStore.shared.codeDevise = "EUR"
+        
+        try modelContext.save()
+    }
+
+    /// Supprime proprement toutes les données en gérant les relations SwiftData
+    @MainActor
+    private func effacerTout() throws {
         // 1. Déconnecter les relations pour éviter les erreurs de "nullify" pendant la suppression massive
         let descripteur = FetchDescriptor<Ecriture>()
         let ecritures = try modelContext.fetch(descripteur)
@@ -251,25 +265,15 @@ final class ParametresStore {
             e.categorie = nil
             e.centreDeCout = nil
         }
+        // On sauvegarde pour persister la rupture des liens avant le batch delete
         try modelContext.save()
 
-        // 2. Suppression massive
+        // 2. Suppression massive (Batch Delete)
+        // L'ordre importe peu une fois les relations nullifiées
         try modelContext.delete(model: Ecriture.self)
         try modelContext.delete(model: Categorie.self)
         try modelContext.delete(model: CentreDeCout.self)
         try modelContext.delete(model: TypeTVA.self)
-        
-        try modelContext.save()
-        
-        // 3. Réinjection des données de base
-        for tva in TypeTVA.seedData {
-            modelContext.insert(tva)
-        }
-        
-        // 4. Réinitialisation de la devise
-        await MainActor.run {
-            DeviseStore.shared.codeDevise = "EUR"
-        }
         
         try modelContext.save()
     }
