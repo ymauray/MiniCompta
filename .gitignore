@@ -15,6 +15,7 @@ xcuserdata/
 
 # Projet Xcode (généré par XcodeGen — ne pas committer)
 *.xcodeproj
+!MiniCompta.xcodeproj
 *.xcworkspace
 !*.xcworkspace/contents.xcworkspacedata
 
