@@ -185,7 +185,12 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
     let creerElement: (String, String, Int) -> T
 
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \T.ordre) private var elements: [T]
+    // Tri en mémoire volontaire : passer un KeyPath générique \T.ordre au
+    // SortDescriptor de SwiftData fait planter (assertion graph_keyPathToString)
+    // sous iOS 26. On récupère sans tri, puis on ordonne localement.
+    @Query private var elements: [T]
+
+    private var elementsTries: [T] { elements.sorted { $0.ordre < $1.ordre } }
 
     @State private var afficherFormulaire = false
     @State private var nomNouveau = ""
@@ -194,7 +199,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
 
     var body: some View {
         List {
-            ForEach(elements) { element in
+            ForEach(elementsTries) { element in
                 HStack {
                     Circle()
                         .fill(Color(hex: element.couleurHex))
@@ -211,7 +216,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                 }
                 .swipeActions(edge: .leading) {
                     Button {
-                        let copie = creerElement(element.nom, element.couleurHex, elements.count)
+                        let copie = creerElement(element.nom, element.couleurHex, elementsTries.count)
                         modelContext.insert(copie)
                         try? modelContext.save()
                     } label: {
@@ -221,11 +226,11 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                 }
             }
             .onDelete { offsets in
-                for i in offsets { modelContext.delete(elements[i]) }
+                for i in offsets { modelContext.delete(elementsTries[i]) }
                 try? modelContext.save()
             }
             .onMove { source, destination in
-                var liste = elements
+                var liste = elementsTries
                 liste.move(fromOffsets: source, toOffset: destination)
                 for (index, element) in liste.enumerated() {
                     element.ordre = index
@@ -260,7 +265,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                         e.nom = nomNouveau
                         e.couleurHex = couleurNouvelle.toHex()
                     } else {
-                        let nouveau = creerElement(nomNouveau, couleurNouvelle.toHex(), elements.count)
+                        let nouveau = creerElement(nomNouveau, couleurNouvelle.toHex(), elementsTries.count)
                         modelContext.insert(nouveau)
                     }
                     try? modelContext.save()
