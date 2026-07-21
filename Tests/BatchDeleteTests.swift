@@ -29,7 +29,7 @@ final class BatchDeleteTests: XCTestCase {
             montantTTC: 100,
             tauxTVA: 0.2,
             typeTVANom: "Normal",
-            centreDeCout: centre,
+            centresDeCout: [centre],
             categorie: cat
         )
         context.insert(ecriture)
@@ -37,7 +37,7 @@ final class BatchDeleteTests: XCTestCase {
         
         // Vérifier que les relations sont bien établies
         XCTAssertNotNil(ecriture.categorie)
-        XCTAssertNotNil(ecriture.centreDeCout)
+        XCTAssertFalse(ecriture.centresDeCout.isEmpty)
         
         // 2. Tenter la réinitialisation (qui utilise effacerTout)
         // Si le bug est présent, cela lèvera une exception ou déclenchera une erreur Core Data
