@@ -39,6 +39,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ch.yannickmauray.mini-compta
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    scheme:
+      testTargets:
+        - MiniComptaTests
 
   MiniComptaTests:
     type: bundle.unit-test
