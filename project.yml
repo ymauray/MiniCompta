@@ -27,6 +27,8 @@ targets:
       path: Sources/Info.plist
       properties:
         CFBundleDisplayName: Mini Compta
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UIApplicationSupportsIndirectInputEvents: true
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
