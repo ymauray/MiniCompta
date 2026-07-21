@@ -39,9 +39,14 @@ struct TableauDeBordView: View {
     private var parCentre: [Segment] {
         var dict: [String: (couleur: String, total: Double)] = [:]
         for e in ecrituresDuMois {
-            let nom = e.centreDeCout?.nom ?? "Autres"
-            let couleur = e.centreDeCout?.couleurHex ?? "#AAAAAA"
-            dict[nom, default: (couleur, 0)].total += e.montantTTC
+            if e.centresDeCout.isEmpty {
+                dict["Autres", default: ("#AAAAAA", 0)].total += e.montantTTC
+            } else {
+                // Montant compté en entier pour chaque centre affecté
+                for centre in e.centresDeCout {
+                    dict[centre.nom, default: (centre.couleurHex, 0)].total += e.montantTTC
+                }
+            }
         }
         return dict.map { Segment(nom: $0.key, couleurHex: $0.value.couleur, montant: $0.value.total) }
             .sorted { $0.montant > $1.montant }

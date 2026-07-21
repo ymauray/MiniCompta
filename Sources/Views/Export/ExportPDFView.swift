@@ -277,7 +277,7 @@ struct ExportPDFView: View {
             let colonnes: [String] = [
                 dateFormatter.string(from: e.date),
                 String(e.libelle.prefix(45)),
-                e.centreDeCout?.nom ?? "—",
+                e.centresDeCout.isEmpty ? "—" : e.centresDeCout.map(\.nom).joined(separator: ", "),
                 e.typeTVANom.isEmpty ? "—" : e.typeTVANom,
                 String(format: "%.1f%%", e.tauxTVA * 100),
                 e.montantTVA.formatMonetaire,
@@ -354,7 +354,7 @@ struct ExportPDFView: View {
             
             for centre in tousLesCentres {
                 let totalTTC = ecrituresFiltrees
-                    .filter { $0.centreDeCout?.id == centre.id }
+                    .filter { e in e.centresDeCout.contains { $0.id == centre.id } }
                     .reduce(0) { $0 + $1.montantSigne }
                 
                 NSAttributedString(string: "\(centre.nom) :", attributes: ligneAttrs).draw(at: CGPoint(x: xBlocGauche, y: yGauche))
