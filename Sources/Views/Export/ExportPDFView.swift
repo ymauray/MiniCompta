@@ -56,8 +56,8 @@ struct ExportPDFView: View {
                 }
 
                 Section("Période personnalisée") {
-                    DatePicker("Du", selection: $dateDebut, displayedComponents: .date)
-                    DatePicker("Au", selection: $dateFin, in: dateDebut..., displayedComponents: .date)
+                    ChampDate(titre: "Du", date: $dateDebut)
+                    ChampDate(titre: "Au", date: $dateFin, dateMin: dateDebut)
                 }
 
                 Section("Aperçu") {
@@ -94,7 +94,7 @@ struct ExportPDFView: View {
                     .disabled(ecrituresFiltrees.isEmpty || generationEnCours)
                 }
             }
-            .navigationTitle("Export PDF")
+            .navigationTitle("Exporter en PDF")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $afficherPartage) {
                 if let url = pdfAPartager {
@@ -401,6 +401,39 @@ struct ExportPDFView: View {
         UIGraphicsEndPDFContext()
 
         return url
+    }
+}
+
+// MARK: - Champ de date
+
+/// Affiche une date formatée de façon fixe (ex. "20 juil. 2026"), indépendamment
+/// de la largeur disponible ou de la région système — contrairement au style
+/// compact natif de `DatePicker`, dont l'affichage se réduit en format numérique
+/// (jj.mm.yy) selon l'espace ou les réglages régionaux.
+struct ChampDate: View {
+    let titre: String
+    @Binding var date: Date
+    var dateMin: Date = .distantPast
+
+    @State private var afficherPicker = false
+
+    var body: some View {
+        HStack {
+            Text(titre)
+            Spacer()
+            Text(date, format: .dateTime.day().month(.abbreviated).year())
+                .foregroundStyle(.secondary)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { afficherPicker = true }
+        .popover(isPresented: $afficherPicker) {
+            DatePicker(titre, selection: $date, in: dateMin..., displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .padding()
+                .presentationCompactAdaptation(.popover)
+                .frame(minWidth: 320, minHeight: 400)
+        }
     }
 }
 
