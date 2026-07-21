@@ -21,7 +21,15 @@ final class Ecriture {
     var montantTTC: Double
     var tauxTVA: Double
 
+    /// Centres de coût affectés à l'écriture (plusieurs possibles).
+    var centresDeCout: [CentreDeCout] = []
+
+    /// Ancienne affectation à un centre unique. Conservée pour permettre le
+    /// chargement des données antérieures au multi-centres puis leur recopie
+    /// dans `centresDeCout` (voir la migration au démarrage). Ne plus utiliser
+    /// depuis l'UI.
     var centreDeCout: CentreDeCout?
+
     var categorie: Categorie?
 
     // TypeTVA est stocké par nom/taux pour éviter une dépendance forte
@@ -34,7 +42,7 @@ final class Ecriture {
         montantTTC: Double = 0,
         tauxTVA: Double = 0.20,
         typeTVANom: String = "",
-        centreDeCout: CentreDeCout? = nil,
+        centresDeCout: [CentreDeCout] = [],
         categorie: Categorie? = nil
     ) {
         self.date = date
@@ -43,7 +51,7 @@ final class Ecriture {
         self.montantTTC = montantTTC
         self.tauxTVA = tauxTVA
         self.typeTVANom = typeTVANom
-        self.centreDeCout = centreDeCout
+        self.centresDeCout = centresDeCout
         self.categorie = categorie
     }
 

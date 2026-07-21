@@ -8,8 +8,13 @@ final class CentreDeCout {
     var couleurHex: String
     var ordre: Int
 
-    @Relationship(deleteRule: .nullify, inverse: \Ecriture.centreDeCout)
+    /// Écritures affectées à ce centre (relation multi-centres).
+    @Relationship(deleteRule: .nullify, inverse: \Ecriture.centresDeCout)
     var ecritures: [Ecriture] = []
+
+    /// Inverse de l'ancienne relation to-one, conservée le temps de la migration.
+    @Relationship(deleteRule: .nullify, inverse: \Ecriture.centreDeCout)
+    var ecrituresLegacy: [Ecriture] = []
 
     init(nom: String, couleurHex: String = "#5E9BF0", ordre: Int = 0) {
         self.id = UUID()

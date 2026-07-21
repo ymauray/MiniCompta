@@ -39,6 +39,16 @@ struct DonneesSauvegarde: Codable {
         let tauxTVA: Double
         let typeTVANom: String
         let categorieId: UUID?
+        /// Ancien format (v1) : un seul centre de coût. Lu à l'import pour compat.
         let centreDeCoutId: UUID?
+        /// Nouveau format (v2) : plusieurs centres de coût.
+        let centreDeCoutIds: [UUID]?
+
+        /// Identifiants des centres, quel que soit le format de la sauvegarde.
+        var centresIds: [UUID] {
+            if let ids = centreDeCoutIds { return ids }
+            if let id = centreDeCoutId { return [id] }
+            return []
+        }
     }
 }

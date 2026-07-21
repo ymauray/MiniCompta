@@ -184,12 +184,12 @@ struct LigneEcriture: View {
                 }
 
                 // Ligne 3 : Badges côte à côte
-                if ecriture.categorie != nil || ecriture.centreDeCout != nil {
+                if ecriture.categorie != nil || !ecriture.centresDeCout.isEmpty {
                     HStack(spacing: 6) {
                         if let cat = ecriture.categorie {
                             BadgeView(texte: cat.nom, couleurHex: cat.couleurHex)
                         }
-                        if let centre = ecriture.centreDeCout {
+                        ForEach(ecriture.centresDeCout) { centre in
                             BadgeView(texte: centre.nom, couleurHex: centre.couleurHex)
                         }
                     }

@@ -8,7 +8,29 @@ final class ParametresStore {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+        migrerVersMultiCentres()
         seedSiNecessaire()
+    }
+
+    // MARK: - Migration multi-centres de coût
+
+    /// Recopie l'ancienne affectation à un centre unique (`centreDeCout`) vers la
+    /// nouvelle relation multi-centres (`centresDeCout`) pour les données créées
+    /// avant cette fonctionnalité. Idempotent : ne touche qu'aux écritures dont
+    /// la nouvelle liste est vide alors qu'un ancien centre est présent.
+    private func migrerVersMultiCentres() {
+        let cleMigration = "app.migration_multi_centres_v1"
+        if UserDefaults.standard.bool(forKey: cleMigration) { return }
+
+        let descripteur = FetchDescriptor<Ecriture>()
+        let ecritures = (try? modelContext.fetch(descripteur)) ?? []
+        for e in ecritures where e.centresDeCout.isEmpty {
+            if let ancien = e.centreDeCout {
+                e.centresDeCout = [ancien]
+            }
+        }
+        try? modelContext.save()
+        UserDefaults.standard.set(true, forKey: cleMigration)
     }
 
     // MARK: - Seed initial
@@ -64,7 +86,9 @@ final class ParametresStore {
             // On alterne les combinaisons
             let tva = tvas[i % tvas.count]
             let cat = i % 2 == 0 ? catLogiciel : (i % 3 == 0 ? catMateriel : catServices)
-            let centre = i % 2 == 0 ? centreStructure : centreProduit
+            // Illustration du multi-centres : certaines écritures portent les deux centres
+            let centres: [CentreDeCout] = i % 3 == 0 ? [centreStructure, centreProduit]
+                : (i % 2 == 0 ? [centreStructure] : [centreProduit])
 
             let e = Ecriture(
                 date: date,
@@ -73,7 +97,7 @@ final class ParametresStore {
                 montantTTC: montants[i],
                 tauxTVA: tva.taux,
                 typeTVANom: tva.nom,
-                centreDeCout: centre,
+                centresDeCout: centres,
                 categorie: cat
             )
             modelContext.insert(e)
@@ -152,7 +176,7 @@ final class ParametresStore {
             let ecritures = try modelContext.fetch(fetchEcritures)
             
             let backup = DonneesSauvegarde(
-                version: 1,
+                version: 2,
                 dateExport: .now,
                 codeDevise: DeviseStore.shared.codeDevise,
                 categories: categories.map { .init(id: $0.id, nom: $0.nom, couleurHex: $0.couleurHex, ordre: $0.ordre) },
@@ -166,7 +190,8 @@ final class ParametresStore {
                     tauxTVA: $0.tauxTVA,
                     typeTVANom: $0.typeTVANom,
                     categorieId: $0.categorie?.id,
-                    centreDeCoutId: $0.centreDeCout?.id
+                    centreDeCoutId: nil,
+                    centreDeCoutIds: $0.centresDeCout.map(\.id)
                 )}
             )
             
@@ -223,6 +248,13 @@ final class ParametresStore {
         
         // 4. Réinsérer les écritures
         for eDTO in backup.ecritures {
+            let centres = eDTO.centresIds.compactMap { centreMap[$0] }
+            let categorie: Categorie?
+            if let catId = eDTO.categorieId {
+                categorie = catMap[catId]
+            } else {
+                categorie = nil
+            }
             let e = Ecriture(
                 date: eDTO.date,
                 libelle: eDTO.libelle,
@@ -230,8 +262,8 @@ final class ParametresStore {
                 montantTTC: eDTO.montantTTC,
                 tauxTVA: eDTO.tauxTVA,
                 typeTVANom: eDTO.typeTVANom,
-                centreDeCout: eDTO.centreDeCoutId != nil ? centreMap[eDTO.centreDeCoutId!] : nil,
-                categorie: eDTO.categorieId != nil ? catMap[eDTO.categorieId!] : nil
+                centresDeCout: centres,
+                categorie: categorie
             )
             modelContext.insert(e)
         }
@@ -264,6 +296,7 @@ final class ParametresStore {
         for e in ecritures {
             e.categorie = nil
             e.centreDeCout = nil
+            e.centresDeCout = []
         }
         // On sauvegarde pour persister la rupture des liens avant le batch delete
         try modelContext.save()

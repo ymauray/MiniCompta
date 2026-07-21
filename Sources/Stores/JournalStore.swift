@@ -77,10 +77,15 @@ final class JournalStore {
         let liste = ecritures(mois: mois)
         var dict: [String: (couleur: String, total: Double)] = [:]
         for e in liste {
-            let nom = e.centreDeCout?.nom ?? "Sans centre"
-            let couleur = e.centreDeCout?.couleurHex ?? "#AAAAAA"
             let val = e.typeEcriture == .depense ? e.montantTTC : -e.montantTTC
-            dict[nom, default: (couleur, 0)].total += val
+            if e.centresDeCout.isEmpty {
+                dict["Sans centre", default: ("#AAAAAA", 0)].total += val
+            } else {
+                // Montant compté en entier pour chaque centre affecté
+                for centre in e.centresDeCout {
+                    dict[centre.nom, default: (centre.couleurHex, 0)].total += val
+                }
+            }
         }
         return dict.map { TotalParGroupe(nom: $0.key, couleurHex: $0.value.couleur, montant: $0.value.total) }
             .sorted { $0.montant > $1.montant }

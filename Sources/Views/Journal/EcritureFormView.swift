@@ -17,8 +17,9 @@ struct EcritureFormView: View {
     @State private var libelle: String = ""
     @State private var montantTTCTexte: String = ""
     @State private var typeTVASelectionne: TypeTVA?
-    @State private var centreSelectionne: CentreDeCout?
+    @State private var centresSelectionnes: [CentreDeCout] = []
     @State private var categorieSelectionnee: Categorie?
+    @State private var dejaCharge = false
 
     private var montantTTC: Double { Double(montantTTCTexte.replacingOccurrences(of: ",", with: ".")) ?? 0 }
     private var tauxTVA: Double { typeTVASelectionne?.taux ?? 0 }
@@ -27,6 +28,14 @@ struct EcritureFormView: View {
 
     private var formulaireValide: Bool {
         !libelle.trimmingCharacters(in: .whitespaces).isEmpty && montantTTC > 0
+    }
+
+    private var resumeCentres: String {
+        switch centresSelectionnes.count {
+        case 0: return "Aucun"
+        case 1: return centresSelectionnes[0].nom
+        default: return "\(centresSelectionnes.count) sélectionnés"
+        }
     }
 
     var body: some View {
@@ -96,15 +105,15 @@ struct EcritureFormView: View {
                             }.tag(Optional(c))
                         }
                     }
-                    Picker("Centre de coût", selection: $centreSelectionne) {
-                        Text("Aucun").tag(Optional<CentreDeCout>.none)
-                        ForEach(centresDeCout) { c in
-                            HStack {
-                                Circle()
-                                    .fill(Color(hex: c.couleurHex))
-                                    .frame(width: 10, height: 10)
-                                Text(c.nom)
-                            }.tag(Optional(c))
+                    NavigationLink {
+                        SelectionCentresView(
+                            centresDisponibles: centresDeCout,
+                            centresSelectionnes: $centresSelectionnes
+                        )
+                    } label: {
+                        LabeledContent("Centres de coût") {
+                            Text(resumeCentres)
+                                .foregroundStyle(centresSelectionnes.isEmpty ? .secondary : .primary)
                         }
                     }
                 }
@@ -127,6 +136,11 @@ struct EcritureFormView: View {
     // MARK: - Actions
 
     private func chargerEcritureExistante() {
+        // Ne charger qu'une fois : `onAppear` se redéclenche au retour de
+        // l'écran de sélection des centres et écraserait la saisie en cours.
+        guard !dejaCharge else { return }
+        dejaCharge = true
+
         guard let e = ecritureExistante else {
             if let premier = typesTVA.first {
                 typeTVASelectionne = premier
@@ -137,7 +151,7 @@ struct EcritureFormView: View {
         date = e.date
         libelle = e.libelle
         montantTTCTexte = String(format: "%.2f", e.montantTTC)
-        centreSelectionne = e.centreDeCout
+        centresSelectionnes = e.centresDeCout
         categorieSelectionnee = e.categorie
         typeTVASelectionne = typesTVA.first { $0.nom == e.typeTVANom }
     }
@@ -153,7 +167,7 @@ struct EcritureFormView: View {
             e.montantTTC = montantTTC
             e.tauxTVA = taux
             e.typeTVANom = nomTVA
-            e.centreDeCout = centreSelectionne
+            e.centresDeCout = centresSelectionnes
             e.categorie = categorieSelectionnee
             try? modelContext.save()
         } else {
@@ -164,12 +178,62 @@ struct EcritureFormView: View {
                 montantTTC: montantTTC,
                 tauxTVA: taux,
                 typeTVANom: nomTVA,
-                centreDeCout: centreSelectionne,
+                centresDeCout: centresSelectionnes,
                 categorie: categorieSelectionnee
             )
             modelContext.insert(nouvelle)
             try? modelContext.save()
         }
         dismiss()
+    }
+}
+
+// MARK: - Sélection multiple des centres de coût
+
+struct SelectionCentresView: View {
+    let centresDisponibles: [CentreDeCout]
+    @Binding var centresSelectionnes: [CentreDeCout]
+
+    var body: some View {
+        List {
+            if centresDisponibles.isEmpty {
+                Text("Aucun centre de coût — ajoutez-en dans Paramètres")
+                    .foregroundStyle(.secondary)
+                    .font(.footnote)
+            } else {
+                ForEach(centresDisponibles) { centre in
+                    Button {
+                        basculer(centre)
+                    } label: {
+                        HStack {
+                            Circle()
+                                .fill(Color(hex: centre.couleurHex))
+                                .frame(width: 10, height: 10)
+                            Text(centre.nom)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            if estSelectionne(centre) {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.tint)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Centres de coût")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func estSelectionne(_ centre: CentreDeCout) -> Bool {
+        centresSelectionnes.contains { $0.id == centre.id }
+    }
+
+    private func basculer(_ centre: CentreDeCout) {
+        if let index = centresSelectionnes.firstIndex(where: { $0.id == centre.id }) {
+            centresSelectionnes.remove(at: index)
+        } else {
+            centresSelectionnes.append(centre)
+        }
     }
 }
