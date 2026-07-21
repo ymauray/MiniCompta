@@ -38,12 +38,14 @@ Représente une ligne du journal comptable.
 | `tauxTVA` | `Double` | Taux (ex. 0.20 pour 20.0%) |
 | `montantHT` | `Double` | **Calculé** : TTC / (1 + taux) |
 | `montantTVA` | `Double` | **Calculé** : TTC − HT |
-| `centreDeCout` | `CentreDeCout?` | Relation optionnelle |
+| `centresDeCout` | `[CentreDeCout]` | Relation multi-valuée (une écriture peut relever de plusieurs centres) |
 | `categorie` | `Categorie?` | Relation optionnelle |
 | `typeTVANom` | `String` | Nom du type TVA (dénormalisé) |
 
+> **Migration multi-centres** : l'ancienne relation to-one `centreDeCout` (`CentreDeCout?`) est conservée en lecture pour recopier les données antérieures vers `centresDeCout` au démarrage. Elle n'est plus utilisée depuis l'UI.
+
 ### `CentreDeCout` / `Categorie`
-Listes de référence configurables. Chacune porte un `id` (UUID unique pour l'import/export), un `nom`, une `couleurHex` (ex. `#5E9BF0`) et un `ordre` (entier pour le tri manuel). Relation inverse avec `Ecriture` (deleteRule `.nullify`).
+Listes de référence configurables. Chacune porte un `id` (UUID unique pour l'import/export), un `nom`, une `couleurHex` (ex. `#5E9BF0`) et un `ordre` (entier pour le tri manuel). Relation inverse avec `Ecriture` (deleteRule `.nullify`) ; `CentreDeCout` expose deux inverses : `ecritures` (relation multi-centres) et `ecrituresLegacy` (ancienne relation, le temps de la migration).
 
 ### `TypeTVA`
 Taux TVA configurables avec métadonnées.
@@ -63,8 +65,8 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe le code d
 ## Stores
 
 ### `JournalStore`
-- Lecture des écritures (toutes, filtrées par mois)
-- Calculs de totaux : recettes, dépenses, solde mensuel
+- Lecture des écritures (toutes, filtrées par période)
+- Calculs de totaux : recettes, dépenses, solde sur la période
 - Agrégats pour graphiques : par centre de coût, par catégorie
 - CRUD : `ajouterEcriture`, `supprimerEcriture`, `sauvegarder`
 
@@ -95,7 +97,7 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe le code d
 
 `ContentView` est un `TabView` à 3 onglets. Une `@State` propriété `selection` est utilisée pour définir l'onglet par défaut (Journal).
 
-1. **Tableau de bord** (`TableauDeBordView`) — graphiques Swift Charts, navigation mensuelle
+1. **Tableau de bord** (`TableauDeBordView`) — graphiques Swift Charts, sélection de période (mois / trimestre / année)
 2. **Journal** (`JournalView`) [Sélectionné par défaut] → `EcritureFormView` (ajout / modification)
    - Les écritures sont affichées sur 3 lignes : libellé (gras), date/montant, et pastilles (badges).
 3. **Paramètres** (`ParametresView`) → choix de la devise + listes configurables + export PDF

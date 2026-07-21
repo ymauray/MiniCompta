@@ -8,16 +8,16 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 ### Journal d'écritures
 
-- Saisie d'une écriture : date, libellé, type (recette / dépense), montant TTC, type TVA, catégorie, centre de coût
+- Saisie d'une écriture : date, libellé, type (recette / dépense), montant TTC, type TVA, catégorie, un ou plusieurs centres de coût
 - Le montant HT et le montant TVA sont **calculés automatiquement** à partir du TTC et du taux
 - Modification et suppression (swipe-to-delete dans la liste)
 - Liste groupée par mois, avec totaux mensuels (recettes / dépenses) dans l'en-tête de section
 - Recherche par libellé
-- **Affichage optimisé** : libellé sur toute la largeur (ligne 1), date et montant (ligne 2), et pastilles de catégorie/centre de coût (ligne 3)
+- **Affichage optimisé** : libellé sur toute la largeur (ligne 1), date et montant (ligne 2), et pastilles de catégorie et de centre(s) de coût (ligne 3)
 
 ### Tableau de bord
 
-- Navigation par mois (mois précédent / suivant, bouton désactivé pour le mois futur)
+- Sélection de la période affichée : boutons raccourcis (mois courant, dernier trimestre, année en cours, année précédente) et navigation avant / arrière selon la granularité active (mois, trimestre ou année) ; le bouton « suivant » est désactivé une fois le présent atteint
 - Trois cartes : total recettes, total dépenses, solde
 - Graphique en barres horizontales par centre de coût (Swift Charts)
 - Graphique en donut par catégorie (Swift Charts) avec légende
@@ -71,6 +71,4 @@ Un message d'information est affiché à l'utilisateur lors de cette première i
 - Synchronisation iCloud / multi-appareils
 - Import depuis Excel ou CSV
 - Comptabilité double entrée (grand livre, bilan)
-- Notifications / rappels
-� double entrée (grand livre, bilan)
 - Notifications / rappels
