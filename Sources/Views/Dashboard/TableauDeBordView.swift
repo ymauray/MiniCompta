@@ -6,23 +6,127 @@ struct TableauDeBordView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Ecriture.date, order: .reverse) private var ecritures: [Ecriture]
 
-    @State private var moisAffiche: Date = .now
+    @State private var granularite: Granularite = .mois
+    @State private var dateReference: Date = .now
 
-    // MARK: - Totaux
+    enum Granularite: Equatable {
+        case mois, trimestre, annee
+    }
 
-    private var ecrituresDuMois: [Ecriture] {
+    enum Raccourci: String, CaseIterable, Identifiable {
+        case moisCourant = "Mois courant"
+        case dernierTrimestre = "Dernier trim."
+        case anneeEnCours = "Année en cours"
+        case anneePrecedente = "Année préc."
+        var id: String { rawValue }
+    }
+
+    // MARK: - Période
+
+    /// Bornes de la période affichée, en intervalle semi-ouvert [début, fin[.
+    private var bornes: (debut: Date, finExclue: Date) {
         let cal = Calendar.current
-        return ecritures.filter {
-            cal.isDate($0.date, equalTo: moisAffiche, toGranularity: .month)
+        switch granularite {
+        case .mois:
+            let debut = cal.dateInterval(of: .month, for: dateReference)?.start ?? dateReference
+            return (debut, cal.date(byAdding: .month, value: 1, to: debut) ?? dateReference)
+        case .trimestre:
+            let debut = debutTrimestre(pour: dateReference)
+            return (debut, cal.date(byAdding: .month, value: 3, to: debut) ?? dateReference)
+        case .annee:
+            let debut = cal.dateInterval(of: .year, for: dateReference)?.start ?? dateReference
+            return (debut, cal.date(byAdding: .year, value: 1, to: debut) ?? dateReference)
         }
     }
 
+    private func debutTrimestre(pour date: Date) -> Date {
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.year, .month], from: date)
+        let mois = comps.month ?? 1
+        let premierMois = ((mois - 1) / 3) * 3 + 1
+        return cal.date(from: DateComponents(year: comps.year, month: premierMois, day: 1)) ?? date
+    }
+
+    /// Vrai tant que la période affichée est entièrement passée (permet d'avancer).
+    private var peutAvancer: Bool {
+        bornes.finExclue <= .now
+    }
+
+    private func decaler(_ sens: Int) {
+        let cal = Calendar.current
+        let nouvelle: Date?
+        switch granularite {
+        case .mois: nouvelle = cal.date(byAdding: .month, value: sens, to: dateReference)
+        case .trimestre: nouvelle = cal.date(byAdding: .month, value: sens * 3, to: dateReference)
+        case .annee: nouvelle = cal.date(byAdding: .year, value: sens, to: dateReference)
+        }
+        dateReference = nouvelle ?? dateReference
+    }
+
+    private func appliquer(_ raccourci: Raccourci) {
+        let cal = Calendar.current
+        switch raccourci {
+        case .moisCourant:
+            granularite = .mois
+            dateReference = .now
+        case .dernierTrimestre:
+            granularite = .trimestre
+            // Une date dans le trimestre précédent = la veille du début du trimestre courant.
+            dateReference = cal.date(byAdding: .day, value: -1, to: debutTrimestre(pour: .now)) ?? .now
+        case .anneeEnCours:
+            granularite = .annee
+            dateReference = .now
+        case .anneePrecedente:
+            granularite = .annee
+            dateReference = cal.date(byAdding: .year, value: -1, to: .now) ?? .now
+        }
+    }
+
+    private func estActif(_ raccourci: Raccourci) -> Bool {
+        let cal = Calendar.current
+        switch raccourci {
+        case .moisCourant:
+            return granularite == .mois && cal.isDate(dateReference, equalTo: .now, toGranularity: .month)
+        case .dernierTrimestre:
+            guard granularite == .trimestre else { return false }
+            let veille = cal.date(byAdding: .day, value: -1, to: debutTrimestre(pour: .now)) ?? .now
+            return debutTrimestre(pour: dateReference) == debutTrimestre(pour: veille)
+        case .anneeEnCours:
+            return granularite == .annee && cal.isDate(dateReference, equalTo: .now, toGranularity: .year)
+        case .anneePrecedente:
+            guard granularite == .annee else { return false }
+            return cal.component(.year, from: dateReference) == cal.component(.year, from: .now) - 1
+        }
+    }
+
+    private var libellePeriode: String {
+        let cal = Calendar.current
+        switch granularite {
+        case .mois:
+            return dateReference.formatted(.dateTime.month(.wide).year())
+        case .trimestre:
+            let mois = cal.component(.month, from: debutTrimestre(pour: dateReference))
+            let trimestre = (mois - 1) / 3 + 1
+            let annee = cal.component(.year, from: dateReference)
+            return "T\(trimestre) \(annee)"
+        case .annee:
+            return dateReference.formatted(.dateTime.year())
+        }
+    }
+
+    // MARK: - Totaux
+
+    private var ecrituresPeriode: [Ecriture] {
+        let (debut, finExclue) = bornes
+        return ecritures.filter { $0.date >= debut && $0.date < finExclue }
+    }
+
     private var totalRecettes: Double {
-        ecrituresDuMois.filter { $0.typeEcriture == .recette }.reduce(0) { $0 + $1.montantTTC }
+        ecrituresPeriode.filter { $0.typeEcriture == .recette }.reduce(0) { $0 + $1.montantTTC }
     }
 
     private var totalDepenses: Double {
-        ecrituresDuMois.filter { $0.typeEcriture == .depense }.reduce(0) { $0 + $1.montantTTC }
+        ecrituresPeriode.filter { $0.typeEcriture == .depense }.reduce(0) { $0 + $1.montantTTC }
     }
 
     private var solde: Double { totalRecettes - totalDepenses }
@@ -38,7 +142,7 @@ struct TableauDeBordView: View {
 
     private var parCentre: [Segment] {
         var dict: [String: (couleur: String, total: Double)] = [:]
-        for e in ecrituresDuMois {
+        for e in ecrituresPeriode {
             if e.centresDeCout.isEmpty {
                 dict["Autres", default: ("#AAAAAA", 0)].total += e.montantTTC
             } else {
@@ -54,7 +158,7 @@ struct TableauDeBordView: View {
 
     private var parCategorie: [Segment] {
         var dict: [String: (couleur: String, total: Double)] = [:]
-        for e in ecrituresDuMois {
+        for e in ecrituresPeriode {
             let nom = e.categorie?.nom ?? "Autres"
             let couleur = e.categorie?.couleurHex ?? "#AAAAAA"
             dict[nom, default: (couleur, 0)].total += e.montantTTC
@@ -71,9 +175,9 @@ struct TableauDeBordView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    selecteurMois
+                    selecteurPeriode
                     cartesSommaire
-                    if !ecrituresDuMois.isEmpty {
+                    if !ecrituresPeriode.isEmpty {
                         if parCentre.count > 1 {
                             graphiqueCentres
                         }
@@ -94,32 +198,45 @@ struct TableauDeBordView: View {
 
     // MARK: - Sous-vues
 
-    private var selecteurMois: some View {
-        HStack {
-            Button {
-                moisAffiche = Calendar.current.date(byAdding: .month, value: -1, to: moisAffiche) ?? moisAffiche
-            } label: {
-                Image(systemName: "chevron.left")
-                    .padding(8)
+    private var selecteurPeriode: some View {
+        VStack(spacing: 12) {
+            FlowLayout(spacing: 8) {
+                ForEach(Raccourci.allCases) { raccourci in
+                    Button(raccourci.rawValue) {
+                        appliquer(raccourci)
+                    }
+                    .font(.caption)
+                    .buttonStyle(.bordered)
+                    .tint(estActif(raccourci) ? .accentColor : .secondary)
+                }
             }
-            .buttonStyle(.bordered)
 
-            Spacer()
+            HStack {
+                Button {
+                    decaler(-1)
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .padding(8)
+                }
+                .buttonStyle(.bordered)
 
-            Text(moisAffiche, format: .dateTime.month(.wide).year())
-                .font(.headline)
-                .textCase(.uppercase)
+                Spacer()
 
-            Spacer()
+                Text(libellePeriode)
+                    .font(.headline)
+                    .textCase(.uppercase)
 
-            Button {
-                moisAffiche = Calendar.current.date(byAdding: .month, value: 1, to: moisAffiche) ?? moisAffiche
-            } label: {
-                Image(systemName: "chevron.right")
-                    .padding(8)
+                Spacer()
+
+                Button {
+                    decaler(1)
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .padding(8)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!peutAvancer)
             }
-            .buttonStyle(.bordered)
-            .disabled(Calendar.current.isDate(moisAffiche, equalTo: .now, toGranularity: .month))
         }
     }
 
@@ -233,7 +350,7 @@ struct TableauDeBordView: View {
             Image(systemName: "tray")
                 .font(.system(size: 44))
                 .foregroundStyle(.secondary)
-            Text("Aucune écriture ce mois-ci")
+            Text("Aucune écriture sur cette période")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
