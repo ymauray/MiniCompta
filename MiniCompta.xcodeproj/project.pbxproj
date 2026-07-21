@@ -26,6 +26,7 @@
 		CBDFFB88D3B64F1AE9B9A17F /* JournalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4A70065E127649938C12F1 /* JournalStore.swift */; };
 		DF39346B30CBE46D84420171 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483A91416C147D1D20232997 /* ContentView.swift */; };
 		DF967D7FE63FC298E5095065 /* TableauDeBordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5509C63274A9A2DD338E92B /* TableauDeBordView.swift */; };
+		E0F66B13EC7E4997E9F0C864 /* BatchDeleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C38569065FB4D6261C321BE3 /* BatchDeleteTests.swift */; };
 		E630DFBE2841F728AA3D28B8 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A5A1B46260FAC3EECC9F6BF /* Charts.framework */; };
 		E867A472BA7B1C3CC988C364 /* CentreDeCout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B0C71DFF45D67898E7BB03 /* CentreDeCout.swift */; };
 		F1FD577312E22A79053D7FB3 /* ColorHex.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6125233AF0D06F8A3A0FB9C /* ColorHex.swift */; };
@@ -64,6 +65,7 @@
 		A3D1DAC39F6EB8EB3CD3FBC0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A5A69E836F5410E363D5B157 /* EcritureFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcritureFormView.swift; sourceTree = "<group>"; };
 		B84A4CEC575B4D3349D31A9E /* MiniComptaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MiniComptaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C38569065FB4D6261C321BE3 /* BatchDeleteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchDeleteTests.swift; sourceTree = "<group>"; };
 		C6125233AF0D06F8A3A0FB9C /* ColorHex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorHex.swift; sourceTree = "<group>"; };
 		CA85F8E7838AD51299639966 /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
 		CDBA450975ECF0F36659D611 /* BackupDeviseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupDeviseTests.swift; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				CDBA450975ECF0F36659D611 /* BackupDeviseTests.swift */,
+				C38569065FB4D6261C321BE3 /* BatchDeleteTests.swift */,
 				D76E9AD85B0097CF4E860C54 /* ClassificationSortingTests.swift */,
 				E0E1D11EA38CD2F81A22577E /* DeviseResetTests.swift */,
 				F1111C7345575521185E04B2 /* MiniComptaTests.swift */,
@@ -308,6 +311,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AD66A8E23BFC27AD7FF33BD6 /* BackupDeviseTests.swift in Sources */,
+				E0F66B13EC7E4997E9F0C864 /* BatchDeleteTests.swift in Sources */,
 				2380B0FD1B9EBC5BE6D26EA6 /* ClassificationSortingTests.swift in Sources */,
 				FAA6DCC01AE8424D52C1B568 /* DeviseResetTests.swift in Sources */,
 				1B2124E83BCA2605A4CB778D /* MiniComptaTests.swift in Sources */,
@@ -419,7 +423,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = WFMP87LTRX;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -439,7 +443,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -520,7 +524,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = WFMP87LTRX;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -534,7 +538,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
