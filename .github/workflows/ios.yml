@@ -24,7 +24,7 @@ jobs:
       - name: Build and Test
         run: |
           UDID=$(xcrun simctl list devices available -j \
-            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS-18")) | .value[]] | first | .udid')
+            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[]] | first | .udid')
           xcodebuild \
             -project MiniCompta.xcodeproj \
             -scheme MiniCompta \
