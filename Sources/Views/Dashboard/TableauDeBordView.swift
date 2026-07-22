@@ -220,6 +220,14 @@ struct TableauDeBordView: View {
         return parCentre.filter { $0.nom == centre.nom }
     }
 
+    /// Solde (recettes − dépenses) du centre sélectionné, ou nil si « Tous ».
+    private var soldeCentreSelectionne: Double? {
+        guard let centre = centreSelectionne else { return nil }
+        return ecrituresPeriode
+            .filter { e in e.centresDeCout.contains { $0.id == centre.id } }
+            .reduce(0) { $0 + $1.montantSigne }
+    }
+
     private var parCategorie: [Segment] {
         var dict: [String: (couleur: String, total: Double)] = [:]
         for e in ecrituresPeriode {
@@ -363,6 +371,18 @@ struct TableauDeBordView: View {
                     )
                     .foregroundStyle(Color(hex: s.couleurHex))
                     .cornerRadius(4)
+                    .annotation(position: .overlay, alignment: .center) {
+                        if let solde = soldeCentreSelectionne {
+                            Text("Solde : \(solde >= 0 ? "+" : "")\(solde.formatMonetaire)")
+                                .font(.caption.bold())
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background {
+                                    Capsule().fill(.black.opacity(0.35))
+                                }
+                        }
+                    }
                 }
                 .chartXAxis {
                     let maxMontant = parCentreAffiche.map(\.montant).max() ?? 0
