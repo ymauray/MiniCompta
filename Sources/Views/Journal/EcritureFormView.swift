@@ -158,9 +158,9 @@ struct EcritureFormView: View {
         }
 
         if let m = modele {
-            // Duplication : on reprend tout sauf la date (aujourd'hui).
+            // Duplication : on reprend tout, y compris la date d'origine.
             typeEcriture = m.typeEcriture
-            date = .now
+            date = m.date
             libelle = m.libelle
             montantTTCTexte = String(format: "%.2f", m.montantTTC)
             centresSelectionnes = m.centresDeCout
