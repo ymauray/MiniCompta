@@ -49,12 +49,6 @@ struct ParametresView: View {
                     }
                 }
 
-                Section("Export") {
-                    NavigationLink("Exporter en PDF") {
-                        ExportPDFView()
-                    }
-                }
-
                 Section(header: Text("Sauvegarde & Import"), footer: Text("L'importation remplacera toutes vos données actuelles par celles du fichier sélectionné.")) {
                     Button {
                         afficherAlerteExport = true

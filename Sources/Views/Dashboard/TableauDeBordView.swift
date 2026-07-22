@@ -5,9 +5,15 @@ import Charts
 struct TableauDeBordView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Ecriture.date, order: .reverse) private var ecritures: [Ecriture]
+    @Query(sort: \CentreDeCout.ordre) private var tousLesCentres: [CentreDeCout]
+    @Query(sort: \TypeTVA.ordre) private var tousLesTypesTVA: [TypeTVA]
 
     @State private var granularite: Granularite = .mois
     @State private var dateReference: Date = .now
+
+    @State private var pdfAPartager: URL?
+    @State private var afficherPartagePDF = false
+    @State private var generationPDFEnCours = false
 
     enum Granularite: Equatable {
         case mois, trimestre, annee, tout
@@ -124,6 +130,34 @@ struct TableauDeBordView: View {
         }
     }
 
+    /// Sous-titre décrivant la période exportée dans le PDF.
+    private var sousTitrePeriode: String {
+        if granularite == .tout {
+            return "Toutes les écritures"
+        }
+        let formatter = DateFormatter()
+        formatter.locale = .autoupdatingCurrent
+        formatter.dateStyle = .long
+        let finInclusive = Calendar.current.date(byAdding: .day, value: -1, to: bornes.finExclue) ?? bornes.finExclue
+        return "Du \(formatter.string(from: bornes.debut)) au \(formatter.string(from: finInclusive))"
+    }
+
+    private func exporterPDF() {
+        generationPDFEnCours = true
+        let lignes = ecrituresPeriode
+        let sousTitre = sousTitrePeriode
+        let centres = tousLesCentres
+        let tvas = tousLesTypesTVA
+        Task {
+            let url = GenerateurPDF.generer(ecritures: lignes, sousTitre: sousTitre, centres: centres, typesTVA: tvas)
+            await MainActor.run {
+                pdfAPartager = url
+                afficherPartagePDF = url != nil
+                generationPDFEnCours = false
+            }
+        }
+    }
+
     // MARK: - Totaux
 
     private var ecrituresPeriode: [Ecriture] {
@@ -203,6 +237,25 @@ struct TableauDeBordView: View {
             }
             .navigationTitle("Tableau de bord")
             .background(Color(.systemGroupedBackground))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        exporterPDF()
+                    } label: {
+                        if generationPDFEnCours {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                    }
+                    .disabled(ecrituresPeriode.isEmpty || generationPDFEnCours)
+                }
+            }
+            .sheet(isPresented: $afficherPartagePDF) {
+                if let url = pdfAPartager {
+                    ShareSheet(activityItems: [url])
+                }
+            }
         }
     }
 
