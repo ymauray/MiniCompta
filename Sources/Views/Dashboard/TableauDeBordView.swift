@@ -10,7 +10,7 @@ struct TableauDeBordView: View {
     @State private var dateReference: Date = .now
 
     enum Granularite: Equatable {
-        case mois, trimestre, annee
+        case mois, trimestre, annee, tout
     }
 
     enum Raccourci: String, CaseIterable, Identifiable {
@@ -18,6 +18,7 @@ struct TableauDeBordView: View {
         case dernierTrimestre = "Dernier trim."
         case anneeEnCours = "Année en cours"
         case anneePrecedente = "Année préc."
+        case tout = "Tout"
         var id: String { rawValue }
     }
 
@@ -36,6 +37,8 @@ struct TableauDeBordView: View {
         case .annee:
             let debut = cal.dateInterval(of: .year, for: dateReference)?.start ?? dateReference
             return (debut, cal.date(byAdding: .year, value: 1, to: debut) ?? dateReference)
+        case .tout:
+            return (.distantPast, .distantFuture)
         }
     }
 
@@ -59,6 +62,7 @@ struct TableauDeBordView: View {
         case .mois: nouvelle = cal.date(byAdding: .month, value: sens, to: dateReference)
         case .trimestre: nouvelle = cal.date(byAdding: .month, value: sens * 3, to: dateReference)
         case .annee: nouvelle = cal.date(byAdding: .year, value: sens, to: dateReference)
+        case .tout: nouvelle = dateReference
         }
         dateReference = nouvelle ?? dateReference
     }
@@ -79,6 +83,8 @@ struct TableauDeBordView: View {
         case .anneePrecedente:
             granularite = .annee
             dateReference = cal.date(byAdding: .year, value: -1, to: .now) ?? .now
+        case .tout:
+            granularite = .tout
         }
     }
 
@@ -96,6 +102,8 @@ struct TableauDeBordView: View {
         case .anneePrecedente:
             guard granularite == .annee else { return false }
             return cal.component(.year, from: dateReference) == cal.component(.year, from: .now) - 1
+        case .tout:
+            return granularite == .tout
         }
     }
 
@@ -111,6 +119,8 @@ struct TableauDeBordView: View {
             return "T\(trimestre) \(annee)"
         case .annee:
             return dateReference.formatted(.dateTime.year())
+        case .tout:
+            return "Toutes les écritures"
         }
     }
 
@@ -219,6 +229,7 @@ struct TableauDeBordView: View {
                         .padding(8)
                 }
                 .buttonStyle(.bordered)
+                .disabled(granularite == .tout)
 
                 Spacer()
 
