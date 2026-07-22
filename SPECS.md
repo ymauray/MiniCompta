@@ -11,7 +11,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Saisie d'une écriture : date, libellé, type (recette / dépense), montant TTC, type TVA, catégorie, un ou plusieurs centres de coût
 - Le montant HT et le montant TVA sont **calculés automatiquement** à partir du TTC et du taux
 - Modification et suppression (swipe-to-delete dans la liste)
-- **Vue de détail** au tap sur une écriture, avec **modification** et **duplication** (formulaire de création pré-rempli, date du jour) : les duplications s'enchaînent en conservant les modifications
+- **Vue de détail** au tap sur une écriture, avec **modification** et **duplication** (formulaire de création pré-rempli, y compris la date d'origine) : les duplications s'enchaînent en conservant les modifications
 - Liste groupée par mois, avec totaux mensuels (recettes / dépenses) dans l'en-tête de section
 - Recherche par libellé
 - **Affichage optimisé** : libellé sur toute la largeur (ligne 1), date et montant (ligne 2), et pastilles de catégorie et de centre(s) de coût (ligne 3)
