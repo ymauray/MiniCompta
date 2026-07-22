@@ -107,7 +107,7 @@ Depuis le tableau de bord, taper une écriture n'est pas possible ; c'est dans l
 
 ## Export PDF
 
-L'export PDF est déclenché depuis le **tableau de bord** (bouton de partage) : il exporte la **période affichée**. La génération est isolée dans `GenerateurPDF` (enum, `Sources/Services/`), réutilisable et indépendant de toute vue. Il s'appuie sur **UIKit / Core Graphics** pour produire un rapport **A4 en format Paysage** :
+L'export PDF est déclenché depuis le **tableau de bord** (bouton de partage) : il exporte la **période affichée**, éventuellement restreinte au **centre de coût sélectionné** dans la carte « Par centre de coût » (mêmes écritures que celles visualisées). La génération est isolée dans `GenerateurPDF` (enum, `Sources/Services/`), réutilisable et indépendant de toute vue. Il s'appuie sur **UIKit / Core Graphics** pour produire un rapport **A4 en format Paysage** :
 - En-tête avec la période exportée (sous-titre fourni par l'appelant).
 - Tableau détaillé des écritures (date, libellé, centre, type TVA, taux, montant TVA, montant TTC).
 - Totaux récapitulatifs (recettes / dépenses / solde).

@@ -20,7 +20,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 
 - Sélection de la période affichée : boutons raccourcis (mois courant, dernier trimestre, année en cours, année précédente) et navigation avant / arrière selon la granularité active (mois, trimestre ou année) ; le bouton « suivant » est désactivé une fois le présent atteint
 - Trois cartes : total recettes, total dépenses, solde
-- Graphique en barres horizontales par centre de coût (Swift Charts)
+- Graphique en barres horizontales par centre de coût (Swift Charts), avec un **sélecteur** pour n'afficher qu'un seul centre (« Tous les centres de coût » par défaut) ; le **solde** du centre sélectionné est affiché en surimpression dans sa barre
 - Graphique en donut par catégorie (Swift Charts) avec légende
   - **Annotation lisible** : les libellés sont affichés dans des pastilles contrastées (fond noir semi-transparent) pour une visibilité optimale sur tous les supports.
 - Liste des 5 dernières écritures (tous mois confondus)
@@ -42,6 +42,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 ### Export PDF
 
 - Déclenché depuis le **tableau de bord** (bouton de partage) : exporte la **période actuellement affichée** (mois, trimestre, année ou tout).
+- Si un **centre de coût** est sélectionné dans la carte dédiée, l'export est restreint à ce centre (écritures, récapitulatif et en-tête).
 - Rapport **A4 Paysage** pour une lecture détaillée des colonnes (Date, Libellé, Centre, Type TVA, Taux, TVA, TTC).
 - **Récapitulatifs synthétiques** : affiche côte à côte les totaux par centre de coût (TTC) et par type de TVA (pour les taux strictement positifs) pour la période choisie.
 - Partage via feuille iOS (`UIActivityViewController`)
