@@ -16,6 +16,7 @@
 		3AB0466F64CBC6BF964889B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 91D915107B2C87637F98493D /* LaunchScreen.storyboard */; };
 		5DD4B52540004A081A6C638D /* ZeroTVATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A142D5FF80162391B4AB38C /* ZeroTVATests.swift */; };
 		5F342E58D411B2395F048568 /* Categorie.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0EA7D3912F46A6729304B69 /* Categorie.swift */; };
+		73FE9392B62BB527B8B39A31 /* EcritureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8481FD008E4CED461E8BCD1 /* EcritureDetailView.swift */; };
 		7AC856D38782D1F301D50181 /* ParametresStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB580EEBD983FE4C7714404B /* ParametresStore.swift */; };
 		815D32891B52B7A9493DF3C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3D1DAC39F6EB8EB3CD3FBC0 /* Assets.xcassets */; };
 		A91B464298F23F538657B2E8 /* EcritureFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A69E836F5410E363D5B157 /* EcritureFormView.swift */; };
@@ -73,6 +74,7 @@
 		D7019A8651C5CBAA40A3A005 /* Ecriture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ecriture.swift; sourceTree = "<group>"; };
 		D76E9AD85B0097CF4E860C54 /* ClassificationSortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassificationSortingTests.swift; sourceTree = "<group>"; };
 		E0E1D11EA38CD2F81A22577E /* DeviseResetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviseResetTests.swift; sourceTree = "<group>"; };
+		E8481FD008E4CED461E8BCD1 /* EcritureDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcritureDetailView.swift; sourceTree = "<group>"; };
 		E99CE99B040FF3815BF09790 /* DeviseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviseStore.swift; sourceTree = "<group>"; };
 		F0EA7D3912F46A6729304B69 /* Categorie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Categorie.swift; sourceTree = "<group>"; };
 		F1111C7345575521185E04B2 /* MiniComptaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniComptaTests.swift; sourceTree = "<group>"; };
@@ -210,6 +212,7 @@
 		F1D8ED7D62C5E591839125E2 /* Journal */ = {
 			isa = PBXGroup;
 			children = (
+				E8481FD008E4CED461E8BCD1 /* EcritureDetailView.swift */,
 				A5A69E836F5410E363D5B157 /* EcritureFormView.swift */,
 				1B9B341F3D36AE83D34B1F13 /* JournalView.swift */,
 			);
@@ -330,6 +333,7 @@
 				DF39346B30CBE46D84420171 /* ContentView.swift in Sources */,
 				F81FAE9892E33A2EE82A3C41 /* DeviseStore.swift in Sources */,
 				11F17061D672C1E9C255DDB0 /* Ecriture.swift in Sources */,
+				73FE9392B62BB527B8B39A31 /* EcritureDetailView.swift in Sources */,
 				A91B464298F23F538657B2E8 /* EcritureFormView.swift in Sources */,
 				F8DABC264F6ABFCB1585D571 /* ExportPDFView.swift in Sources */,
 				CBDFFB88D3B64F1AE9B9A17F /* JournalStore.swift in Sources */,

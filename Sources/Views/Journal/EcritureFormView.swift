@@ -11,6 +11,11 @@ struct EcritureFormView: View {
     @Query(sort: \Categorie.ordre) private var categories: [Categorie]
 
     var ecritureExistante: Ecriture?
+    /// Écriture source pour une duplication : pré-remplit le formulaire en mode
+    /// création (toutes les infos sauf la date, ramenée à aujourd'hui).
+    var modele: Ecriture?
+    /// Appelé avec la nouvelle écriture après une création réussie (ignoré en édition).
+    var onEnregistre: ((Ecriture) -> Void)?
 
     @State private var typeEcriture: TypeEcriture = .depense
     @State private var date: Date = .now
@@ -141,19 +146,33 @@ struct EcritureFormView: View {
         guard !dejaCharge else { return }
         dejaCharge = true
 
-        guard let e = ecritureExistante else {
-            if let premier = typesTVA.first {
-                typeTVASelectionne = premier
-            }
+        if let e = ecritureExistante {
+            typeEcriture = e.typeEcriture
+            date = e.date
+            libelle = e.libelle
+            montantTTCTexte = String(format: "%.2f", e.montantTTC)
+            centresSelectionnes = e.centresDeCout
+            categorieSelectionnee = e.categorie
+            typeTVASelectionne = typesTVA.first { $0.nom == e.typeTVANom }
             return
         }
-        typeEcriture = e.typeEcriture
-        date = e.date
-        libelle = e.libelle
-        montantTTCTexte = String(format: "%.2f", e.montantTTC)
-        centresSelectionnes = e.centresDeCout
-        categorieSelectionnee = e.categorie
-        typeTVASelectionne = typesTVA.first { $0.nom == e.typeTVANom }
+
+        if let m = modele {
+            // Duplication : on reprend tout sauf la date (aujourd'hui).
+            typeEcriture = m.typeEcriture
+            date = .now
+            libelle = m.libelle
+            montantTTCTexte = String(format: "%.2f", m.montantTTC)
+            centresSelectionnes = m.centresDeCout
+            categorieSelectionnee = m.categorie
+            typeTVASelectionne = typesTVA.first { $0.nom == m.typeTVANom }
+            return
+        }
+
+        // Création vierge : présélectionne le premier type de TVA.
+        if let premier = typesTVA.first {
+            typeTVASelectionne = premier
+        }
     }
 
     private func enregistrer() {
@@ -183,6 +202,7 @@ struct EcritureFormView: View {
             )
             modelContext.insert(nouvelle)
             try? modelContext.save()
+            onEnregistre?(nouvelle)
         }
         dismiss()
     }
