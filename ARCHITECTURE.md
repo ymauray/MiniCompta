@@ -100,18 +100,19 @@ Structure `Codable` utilisée pour l'export/import JSON. Elle regroupe le code d
 1. **Tableau de bord** (`TableauDeBordView`) — graphiques Swift Charts, sélection de période (mois / trimestre / année)
 2. **Journal** (`JournalView`) [Sélectionné par défaut] → `EcritureFormView` (ajout / modification)
    - Les écritures sont affichées sur 3 lignes : libellé (gras), date/montant, et pastilles (badges).
-3. **Paramètres** (`ParametresView`) → choix de la devise + listes configurables + export PDF
+3. **Paramètres** (`ParametresView`) → choix de la devise + listes configurables + sauvegarde/import JSON
    - Supporte la réorganisation manuelle (drag-and-drop) et la duplication (swipe).
+
+Depuis le tableau de bord, taper une écriture n'est pas possible ; c'est dans le **Journal** que taper une écriture ouvre `EcritureDetailView` (détail), d'où l'on peut **modifier** ou **dupliquer** l'écriture.
 
 ## Export PDF
 
-`ExportPDFView` utilise **PDFKit** (Core Graphics / UIKit) pour générer un rapport **A4 en format Paysage** :
-- En-tête avec période sélectionnée.
+L'export PDF est déclenché depuis le **tableau de bord** (bouton de partage) : il exporte la **période affichée**. La génération est isolée dans `GenerateurPDF` (enum, `Sources/Services/`), réutilisable et indépendant de toute vue. Il s'appuie sur **UIKit / Core Graphics** pour produire un rapport **A4 en format Paysage** :
+- En-tête avec la période exportée (sous-titre fourni par l'appelant).
 - Tableau détaillé des écritures (date, libellé, centre, type TVA, taux, montant TVA, montant TTC).
-- Raccourcis de sélection rapide de période (trimestre, année en cours, année précédente).
 - Totaux récapitulatifs (recettes / dépenses / solde).
-- **Récapitulatifs détaillés** : les totaux par Centre de coût et par Type de TVA sont affichés côte à côte en fin de document pour une lecture synthétique.
-- Partagé via `UIActivityViewController`.
+- **Récapitulatifs détaillés** : les totaux par Centre de coût et par Type de TVA sont affichés côte à côte en fin de document.
+- Partagé via `ShareSheet` (`UIActivityViewController`), composant partagé dans `Sources/Views/Shared/`.
 
 ## Icône
 

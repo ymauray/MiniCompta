@@ -11,6 +11,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Saisie d'une écriture : date, libellé, type (recette / dépense), montant TTC, type TVA, catégorie, un ou plusieurs centres de coût
 - Le montant HT et le montant TVA sont **calculés automatiquement** à partir du TTC et du taux
 - Modification et suppression (swipe-to-delete dans la liste)
+- **Vue de détail** au tap sur une écriture, avec **modification** et **duplication** (formulaire de création pré-rempli, date du jour) : les duplications s'enchaînent en conservant les modifications
 - Liste groupée par mois, avec totaux mensuels (recettes / dépenses) dans l'en-tête de section
 - Recherche par libellé
 - **Affichage optimisé** : libellé sur toute la largeur (ligne 1), date et montant (ligne 2), et pastilles de catégorie et de centre(s) de coût (ligne 3)
@@ -23,6 +24,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - Graphique en donut par catégorie (Swift Charts) avec légende
   - **Annotation lisible** : les libellés sont affichés dans des pastilles contrastées (fond noir semi-transparent) pour une visibilité optimale sur tous les supports.
 - Liste des 5 dernières écritures (tous mois confondus)
+- **Export PDF** : bouton de partage générant le rapport PDF de la période affichée
 
 ### Paramètres
 
@@ -36,12 +38,10 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
   - *Sécurité* : avertissement explicite sur la responsabilité de l'utilisateur lors de l'export.
   - *Validation* : confirmation critique avant l'importation (écrasement des données).
 - **Réinitialisation** : option pour effacer toutes les données et remettre l'application à zéro (avec confirmation).
-- Accès à l'export PDF
 
 ### Export PDF
 
-- Sélection d'une période (date de début et de fin) avec **boutons de raccourcis rapides** (trimestre, année).
-- Aperçu du nombre d'écritures et des totaux avant génération.
+- Déclenché depuis le **tableau de bord** (bouton de partage) : exporte la **période actuellement affichée** (mois, trimestre, année ou tout).
 - Rapport **A4 Paysage** pour une lecture détaillée des colonnes (Date, Libellé, Centre, Type TVA, Taux, TVA, TTC).
 - **Récapitulatifs synthétiques** : affiche côte à côte les totaux par centre de coût (TTC) et par type de TVA (pour les taux strictement positifs) pour la période choisie.
 - Partage via feuille iOS (`UIActivityViewController`)

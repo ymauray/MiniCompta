@@ -41,11 +41,12 @@ Lancer ensuite sur simulateur ou appareil via Xcode (⌘R).
 Sources/
 ├── Models/           — modèles SwiftData (Ecriture, CentreDeCout, Categorie, TypeTVA)
 ├── Stores/           — logique métier @Observable (JournalStore, ParametresStore)
+├── Services/         — services réutilisables (GenerateurPDF)
 ├── Views/
-│   ├── Dashboard/    — tableau de bord et graphiques
-│   ├── Journal/      — liste et formulaire de saisie
+│   ├── Dashboard/    — tableau de bord, graphiques et export PDF
+│   ├── Journal/      — liste, détail, formulaire de saisie
 │   ├── Parametres/   — gestion des listes de référence
-│   └── Export/       — génération PDF
+│   └── Shared/       — composants partagés (ShareSheet)
 └── Assets.xcassets   — icône et ressources visuelles
 ```
 
