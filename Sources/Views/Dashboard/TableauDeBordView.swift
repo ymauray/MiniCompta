@@ -15,6 +15,9 @@ struct TableauDeBordView: View {
     @State private var afficherPartagePDF = false
     @State private var generationPDFEnCours = false
 
+    /// Filtre de la carte « Par centre de coût » (nil = tous les centres).
+    @State private var centreSelectionne: CentreDeCout?
+
     enum Granularite: Equatable {
         case mois, trimestre, annee, tout
     }
@@ -142,11 +145,22 @@ struct TableauDeBordView: View {
         return "Du \(formatter.string(from: bornes.debut)) au \(formatter.string(from: finInclusive))"
     }
 
+    /// Écritures incluses dans l'export : la période, restreinte au centre
+    /// sélectionné le cas échéant (même filtre que la carte « Par centre de coût »).
+    private var ecrituresExport: [Ecriture] {
+        guard let centre = centreSelectionne else { return ecrituresPeriode }
+        return ecrituresPeriode.filter { e in e.centresDeCout.contains { $0.id == centre.id } }
+    }
+
     private func exporterPDF() {
         generationPDFEnCours = true
-        let lignes = ecrituresPeriode
-        let sousTitre = sousTitrePeriode
-        let centres = tousLesCentres
+        let lignes = ecrituresExport
+        var sousTitre = sousTitrePeriode
+        if let centre = centreSelectionne {
+            sousTitre += " — Centre : \(centre.nom)"
+        }
+        // Restreint aussi le récapitulatif au centre filtré.
+        let centres = centreSelectionne.map { [$0] } ?? tousLesCentres
         let tvas = tousLesTypesTVA
         Task {
             let url = GenerateurPDF.generer(ecritures: lignes, sousTitre: sousTitre, centres: centres, typesTVA: tvas)
@@ -200,6 +214,12 @@ struct TableauDeBordView: View {
             .sorted { $0.montant > $1.montant }
     }
 
+    /// Segments effectivement affichés dans la carte, selon le centre sélectionné.
+    private var parCentreAffiche: [Segment] {
+        guard let centre = centreSelectionne else { return parCentre }
+        return parCentre.filter { $0.nom == centre.nom }
+    }
+
     private var parCategorie: [Segment] {
         var dict: [String: (couleur: String, total: Double)] = [:]
         for e in ecrituresPeriode {
@@ -248,7 +268,7 @@ struct TableauDeBordView: View {
                             Image(systemName: "square.and.arrow.up")
                         }
                     }
-                    .disabled(ecrituresPeriode.isEmpty || generationPDFEnCours)
+                    .disabled(ecrituresExport.isEmpty || generationPDFEnCours)
                 }
             }
             .sheet(isPresented: $afficherPartagePDF) {
@@ -320,26 +340,43 @@ struct TableauDeBordView: View {
 
     private var graphiqueCentres: some View {
         CarteGraphique(titre: "Par centre de coût") {
-            Chart(parCentre) { s in
-                BarMark(
-                    x: .value("Montant", s.montant),
-                    y: .value("Centre", s.nom)
-                )
-                .foregroundStyle(Color(hex: s.couleurHex))
-                .cornerRadius(4)
+            Picker("Centre de coût", selection: $centreSelectionne) {
+                Text("Tous les centres de coût").tag(Optional<CentreDeCout>.none)
+                ForEach(tousLesCentres) { centre in
+                    Text(centre.nom).tag(Optional(centre))
+                }
             }
-            .chartXAxis {
-                let maxMontant = parCentre.map(\.montant).max() ?? 0
-                AxisMarks { value in
-                    AxisGridLine()
-                    if let d = value.as(Double.self), d > 0 && d < maxMontant * 0.9 {
-                        AxisValueLabel {
-                            Text(d.formatMonetaire).font(.caption2)
+            .pickerStyle(.menu)
+            .labelsHidden()
+
+            if parCentreAffiche.isEmpty {
+                Text("Aucune écriture pour ce centre sur la période")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+            } else {
+                Chart(parCentreAffiche) { s in
+                    BarMark(
+                        x: .value("Montant", s.montant),
+                        y: .value("Centre", s.nom)
+                    )
+                    .foregroundStyle(Color(hex: s.couleurHex))
+                    .cornerRadius(4)
+                }
+                .chartXAxis {
+                    let maxMontant = parCentreAffiche.map(\.montant).max() ?? 0
+                    AxisMarks { value in
+                        AxisGridLine()
+                        if let d = value.as(Double.self), d > 0 && d < maxMontant * 0.9 {
+                            AxisValueLabel {
+                                Text(d.formatMonetaire).font(.caption2)
+                            }
                         }
                     }
                 }
+                .frame(height: CGFloat(max(120, parCentreAffiche.count * 44)))
             }
-            .frame(height: CGFloat(max(120, parCentre.count * 44)))
         }
     }
 
