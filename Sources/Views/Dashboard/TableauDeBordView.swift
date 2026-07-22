@@ -5,12 +5,21 @@ import Charts
 struct TableauDeBordView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Ecriture.date, order: .reverse) private var ecritures: [Ecriture]
+    @Query(sort: \CentreDeCout.ordre) private var tousLesCentres: [CentreDeCout]
+    @Query(sort: \TypeTVA.ordre) private var tousLesTypesTVA: [TypeTVA]
 
     @State private var granularite: Granularite = .mois
     @State private var dateReference: Date = .now
 
+    @State private var pdfAPartager: URL?
+    @State private var afficherPartagePDF = false
+    @State private var generationPDFEnCours = false
+
+    /// Filtre de la carte « Par centre de coût » (nil = tous les centres).
+    @State private var centreSelectionne: CentreDeCout?
+
     enum Granularite: Equatable {
-        case mois, trimestre, annee
+        case mois, trimestre, annee, tout
     }
 
     enum Raccourci: String, CaseIterable, Identifiable {
@@ -18,6 +27,7 @@ struct TableauDeBordView: View {
         case dernierTrimestre = "Dernier trim."
         case anneeEnCours = "Année en cours"
         case anneePrecedente = "Année préc."
+        case tout = "Tout"
         var id: String { rawValue }
     }
 
@@ -36,6 +46,8 @@ struct TableauDeBordView: View {
         case .annee:
             let debut = cal.dateInterval(of: .year, for: dateReference)?.start ?? dateReference
             return (debut, cal.date(byAdding: .year, value: 1, to: debut) ?? dateReference)
+        case .tout:
+            return (.distantPast, .distantFuture)
         }
     }
 
@@ -59,6 +71,7 @@ struct TableauDeBordView: View {
         case .mois: nouvelle = cal.date(byAdding: .month, value: sens, to: dateReference)
         case .trimestre: nouvelle = cal.date(byAdding: .month, value: sens * 3, to: dateReference)
         case .annee: nouvelle = cal.date(byAdding: .year, value: sens, to: dateReference)
+        case .tout: nouvelle = dateReference
         }
         dateReference = nouvelle ?? dateReference
     }
@@ -79,6 +92,8 @@ struct TableauDeBordView: View {
         case .anneePrecedente:
             granularite = .annee
             dateReference = cal.date(byAdding: .year, value: -1, to: .now) ?? .now
+        case .tout:
+            granularite = .tout
         }
     }
 
@@ -96,6 +111,8 @@ struct TableauDeBordView: View {
         case .anneePrecedente:
             guard granularite == .annee else { return false }
             return cal.component(.year, from: dateReference) == cal.component(.year, from: .now) - 1
+        case .tout:
+            return granularite == .tout
         }
     }
 
@@ -111,6 +128,47 @@ struct TableauDeBordView: View {
             return "T\(trimestre) \(annee)"
         case .annee:
             return dateReference.formatted(.dateTime.year())
+        case .tout:
+            return "Toutes les écritures"
+        }
+    }
+
+    /// Sous-titre décrivant la période exportée dans le PDF.
+    private var sousTitrePeriode: String {
+        if granularite == .tout {
+            return "Toutes les écritures"
+        }
+        let formatter = DateFormatter()
+        formatter.locale = .autoupdatingCurrent
+        formatter.dateStyle = .long
+        let finInclusive = Calendar.current.date(byAdding: .day, value: -1, to: bornes.finExclue) ?? bornes.finExclue
+        return "Du \(formatter.string(from: bornes.debut)) au \(formatter.string(from: finInclusive))"
+    }
+
+    /// Écritures incluses dans l'export : la période, restreinte au centre
+    /// sélectionné le cas échéant (même filtre que la carte « Par centre de coût »).
+    private var ecrituresExport: [Ecriture] {
+        guard let centre = centreSelectionne else { return ecrituresPeriode }
+        return ecrituresPeriode.filter { e in e.centresDeCout.contains { $0.id == centre.id } }
+    }
+
+    private func exporterPDF() {
+        generationPDFEnCours = true
+        let lignes = ecrituresExport
+        var sousTitre = sousTitrePeriode
+        if let centre = centreSelectionne {
+            sousTitre += " — Centre : \(centre.nom)"
+        }
+        // Restreint aussi le récapitulatif au centre filtré.
+        let centres = centreSelectionne.map { [$0] } ?? tousLesCentres
+        let tvas = tousLesTypesTVA
+        Task {
+            let url = GenerateurPDF.generer(ecritures: lignes, sousTitre: sousTitre, centres: centres, typesTVA: tvas)
+            await MainActor.run {
+                pdfAPartager = url
+                afficherPartagePDF = url != nil
+                generationPDFEnCours = false
+            }
         }
     }
 
@@ -156,6 +214,20 @@ struct TableauDeBordView: View {
             .sorted { $0.montant > $1.montant }
     }
 
+    /// Segments effectivement affichés dans la carte, selon le centre sélectionné.
+    private var parCentreAffiche: [Segment] {
+        guard let centre = centreSelectionne else { return parCentre }
+        return parCentre.filter { $0.nom == centre.nom }
+    }
+
+    /// Solde (recettes − dépenses) du centre sélectionné, ou nil si « Tous ».
+    private var soldeCentreSelectionne: Double? {
+        guard let centre = centreSelectionne else { return nil }
+        return ecrituresPeriode
+            .filter { e in e.centresDeCout.contains { $0.id == centre.id } }
+            .reduce(0) { $0 + $1.montantSigne }
+    }
+
     private var parCategorie: [Segment] {
         var dict: [String: (couleur: String, total: Double)] = [:]
         for e in ecrituresPeriode {
@@ -193,6 +265,25 @@ struct TableauDeBordView: View {
             }
             .navigationTitle("Tableau de bord")
             .background(Color(.systemGroupedBackground))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        exporterPDF()
+                    } label: {
+                        if generationPDFEnCours {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                    }
+                    .disabled(ecrituresExport.isEmpty || generationPDFEnCours)
+                }
+            }
+            .sheet(isPresented: $afficherPartagePDF) {
+                if let url = pdfAPartager {
+                    ShareSheet(activityItems: [url])
+                }
+            }
         }
     }
 
@@ -219,6 +310,7 @@ struct TableauDeBordView: View {
                         .padding(8)
                 }
                 .buttonStyle(.bordered)
+                .disabled(granularite == .tout)
 
                 Spacer()
 
@@ -256,26 +348,55 @@ struct TableauDeBordView: View {
 
     private var graphiqueCentres: some View {
         CarteGraphique(titre: "Par centre de coût") {
-            Chart(parCentre) { s in
-                BarMark(
-                    x: .value("Montant", s.montant),
-                    y: .value("Centre", s.nom)
-                )
-                .foregroundStyle(Color(hex: s.couleurHex))
-                .cornerRadius(4)
+            Picker("Centre de coût", selection: $centreSelectionne) {
+                Text("Tous les centres de coût").tag(Optional<CentreDeCout>.none)
+                ForEach(tousLesCentres) { centre in
+                    Text(centre.nom).tag(Optional(centre))
+                }
             }
-            .chartXAxis {
-                let maxMontant = parCentre.map(\.montant).max() ?? 0
-                AxisMarks { value in
-                    AxisGridLine()
-                    if let d = value.as(Double.self), d > 0 && d < maxMontant * 0.9 {
-                        AxisValueLabel {
-                            Text(d.formatMonetaire).font(.caption2)
+            .pickerStyle(.menu)
+            .labelsHidden()
+
+            if parCentreAffiche.isEmpty {
+                Text("Aucune écriture pour ce centre sur la période")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+            } else {
+                Chart(parCentreAffiche) { s in
+                    BarMark(
+                        x: .value("Montant", s.montant),
+                        y: .value("Centre", s.nom)
+                    )
+                    .foregroundStyle(Color(hex: s.couleurHex))
+                    .cornerRadius(4)
+                    .annotation(position: .overlay, alignment: .center) {
+                        if let solde = soldeCentreSelectionne {
+                            Text("Solde : \(solde >= 0 ? "+" : "")\(solde.formatMonetaire)")
+                                .font(.caption.bold())
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background {
+                                    Capsule().fill(.black.opacity(0.35))
+                                }
                         }
                     }
                 }
+                .chartXAxis {
+                    let maxMontant = parCentreAffiche.map(\.montant).max() ?? 0
+                    AxisMarks { value in
+                        AxisGridLine()
+                        if let d = value.as(Double.self), d > 0 && d < maxMontant * 0.9 {
+                            AxisValueLabel {
+                                Text(d.formatMonetaire).font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .frame(height: CGFloat(max(120, parCentreAffiche.count * 44)))
             }
-            .frame(height: CGFloat(max(120, parCentre.count * 44)))
         }
     }
 

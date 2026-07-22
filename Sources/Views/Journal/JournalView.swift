@@ -6,8 +6,8 @@ struct JournalView: View {
     @Query(sort: \Ecriture.date, order: .reverse) private var ecritures: [Ecriture]
 
     @State private var afficherFormulaire = false
-    @State private var ecritureAModifier: Ecriture?
     @State private var recherche = ""
+    @State private var chemin: [Ecriture] = []
 
     private var ecrituresFiltrees: [Ecriture] {
         guard !recherche.isEmpty else { return ecritures }
@@ -36,7 +36,7 @@ struct JournalView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $chemin) {
             Group {
                 if ecritures.isEmpty {
                     etatVide
@@ -44,12 +44,14 @@ struct JournalView: View {
                     listePrincipale
                 }
             }
+            .navigationDestination(for: Ecriture.self) { e in
+                EcritureDetailView(ecriture: e, chemin: $chemin)
+            }
             .navigationTitle("Journal")
             .searchable(text: $recherche, prompt: "Rechercher un libellé")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        ecritureAModifier = nil
                         afficherFormulaire = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
@@ -59,9 +61,6 @@ struct JournalView: View {
             }
             .sheet(isPresented: $afficherFormulaire) {
                 EcritureFormView()
-            }
-            .sheet(item: $ecritureAModifier) { e in
-                EcritureFormView(ecritureExistante: e)
             }
         }
     }
@@ -94,9 +93,9 @@ struct JournalView: View {
             ForEach(groupesParMois, id: \.cle) { groupe in
                 Section(header: enteteSection(groupe)) {
                     ForEach(groupe.ecritures) { ecriture in
-                        LigneEcriture(ecriture: ecriture)
-                            .contentShape(Rectangle())
-                            .onTapGesture { ecritureAModifier = ecriture }
+                        NavigationLink(value: ecriture) {
+                            LigneEcriture(ecriture: ecriture)
+                        }
                     }
                     .onDelete { offsets in
                         supprimer(offsets, dans: groupe.ecritures)
