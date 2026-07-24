@@ -454,9 +454,16 @@ struct FormulaireTVAView: View {
     private func enregistrer() {
         let tauxDecimal = (Double(tauxTexte.replacingOccurrences(of: ",", with: ".")) ?? 0) / 100
         if let t = typeTVA {
+            let ancienNom = t.nom
             t.nom = nom
             t.taux = tauxDecimal
             t.signification = signification
+            // Le libellé est copié par valeur dans chaque écriture (typeTVANom).
+            // Au renommage, on le répercute sur les écritures existantes. Le taux
+            // reste figé sur l'écriture pour l'exactitude historique des montants.
+            if ancienNom != nom {
+                renommerDansEcritures(de: ancienNom, vers: nom)
+            }
         } else {
             let nouveau = TypeTVA(nom: nom, taux: tauxDecimal, signification: signification, ordre: ordreProchain)
             modelContext.insert(nouveau)
@@ -464,6 +471,16 @@ struct FormulaireTVAView: View {
         try? modelContext.save()
         onValider()
         dismiss()
+    }
+
+    private func renommerDansEcritures(de ancienNom: String, vers nouveauNom: String) {
+        let descripteur = FetchDescriptor<Ecriture>(
+            predicate: #Predicate { $0.typeTVANom == ancienNom }
+        )
+        guard let ecritures = try? modelContext.fetch(descripteur) else { return }
+        for ecriture in ecritures {
+            ecriture.typeTVANom = nouveauNom
+        }
     }
 }
 
