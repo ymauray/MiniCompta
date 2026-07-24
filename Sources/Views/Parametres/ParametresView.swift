@@ -171,6 +171,23 @@ protocol ElementConfigurable: PersistentModel {
 extension CentreDeCout: ElementConfigurable {}
 extension Categorie: ElementConfigurable {}
 
+// MARK: - Mode de présentation du formulaire
+
+/// Pilote la présentation via `.sheet(item:)` plutôt que `.sheet(isPresented:)` :
+/// évite le bug de capture d'état obsolète (au premier tap depuis l'arrivée sur
+/// l'écran, `.sheet(isPresented:)` lisait encore l'ancienne sélection).
+enum ModeFormulaire<T: PersistentModel>: Identifiable {
+    case ajout
+    case modification(T)
+
+    var id: String {
+        switch self {
+        case .ajout: return "ajout"
+        case .modification(let element): return "modif-\(element.persistentModelID)"
+        }
+    }
+}
+
 // MARK: - Vue générique pour Centre de coût / Catégorie
 
 struct ListeConfigurableView<T: ElementConfigurable>: View {
@@ -186,10 +203,9 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
 
     private var elementsTries: [T] { elements.sorted { $0.ordre < $1.ordre } }
 
-    @State private var afficherFormulaire = false
     @State private var nomNouveau = ""
     @State private var couleurNouvelle = Color(.systemBlue)
-    @State private var elementAModifier: T?
+    @State private var mode: ModeFormulaire<T>?
 
     var body: some View {
         List {
@@ -205,8 +221,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                 .onTapGesture {
                     nomNouveau = element.nom
                     couleurNouvelle = Color(hex: element.couleurHex)
-                    elementAModifier = element
-                    afficherFormulaire = true
+                    mode = .modification(element)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
@@ -241,21 +256,20 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                     Button {
                         nomNouveau = ""
                         couleurNouvelle = Color(.systemBlue)
-                        elementAModifier = nil
-                        afficherFormulaire = true
+                        mode = .ajout
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $afficherFormulaire) {
+        .sheet(item: $mode) { mode in
             FormulaireElementView(
-                titre: elementAModifier == nil ? ajouterLabel : "Modifier",
+                titre: { if case .modification = mode { return "Modifier" } else { return ajouterLabel } }(),
                 nom: $nomNouveau,
                 couleur: $couleurNouvelle,
                 onValider: {
-                    if let e = elementAModifier {
+                    if case .modification(let e) = mode {
                         e.nom = nomNouveau
                         e.couleurHex = couleurNouvelle.toHex()
                     } else {
@@ -263,7 +277,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                         modelContext.insert(nouveau)
                     }
                     try? modelContext.save()
-                    afficherFormulaire = false
+                    self.mode = nil
                 }
             )
         }
@@ -312,8 +326,16 @@ struct ListeTypesTVAView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \TypeTVA.ordre) private var typesTVA: [TypeTVA]
 
-    @State private var afficherFormulaire = false
-    @State private var typeAModifier: TypeTVA?
+    @State private var mode: ModeFormulaire<TypeTVA>?
+    @State private var messageBlocage: String?
+
+    private func nombreEcritures(pour type: TypeTVA) -> Int {
+        let nom = type.nom
+        let descripteur = FetchDescriptor<Ecriture>(
+            predicate: #Predicate { $0.typeTVANom == nom }
+        )
+        return (try? modelContext.fetchCount(descripteur)) ?? 0
+    }
 
     var body: some View {
         List {
@@ -330,8 +352,7 @@ struct ListeTypesTVAView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    typeAModifier = t
-                    afficherFormulaire = true
+                    mode = .modification(t)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
@@ -345,8 +366,23 @@ struct ListeTypesTVAView: View {
                 }
             }
             .onDelete { offsets in
-                for i in offsets { modelContext.delete(typesTVA[i]) }
+                // Un type utilisé par des écritures ne peut pas être supprimé :
+                // les libellés étant synchronisés, l'usage se détecte de façon
+                // fiable via typeTVANom.
+                var bloques: [String] = []
+                for i in offsets {
+                    let type = typesTVA[i]
+                    let n = nombreEcritures(pour: type)
+                    if n > 0 {
+                        bloques.append("« \(type.nom) » est utilisé par \(n) écriture\(n > 1 ? "s" : "").")
+                    } else {
+                        modelContext.delete(type)
+                    }
+                }
                 try? modelContext.save()
+                if !bloques.isEmpty {
+                    messageBlocage = bloques.joined(separator: "\n")
+                }
             }
             .onMove { source, destination in
                 var liste = typesTVA
@@ -364,18 +400,27 @@ struct ListeTypesTVAView: View {
                 HStack {
                     EditButton()
                     Button {
-                        typeAModifier = nil
-                        afficherFormulaire = true
+                        mode = .ajout
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $afficherFormulaire) {
-            FormulaireTVAView(typeTVA: typeAModifier, ordreProchain: typesTVA.count, onValider: {
-                afficherFormulaire = false
+        .sheet(item: $mode) { mode in
+            let type: TypeTVA? = { if case .modification(let t) = mode { return t } else { return nil } }()
+            FormulaireTVAView(typeTVA: type, ordreProchain: typesTVA.count, onValider: {
+                self.mode = nil
             })
+        }
+        .alert(
+            "Suppression impossible",
+            isPresented: Binding(get: { messageBlocage != nil }, set: { if !$0 { messageBlocage = nil } }),
+            presenting: messageBlocage
+        ) { _ in
+            Button("OK", role: .cancel) { }
+        } message: { message in
+            Text(message)
         }
     }
 }
@@ -442,9 +487,16 @@ struct FormulaireTVAView: View {
     private func enregistrer() {
         let tauxDecimal = (Double(tauxTexte.replacingOccurrences(of: ",", with: ".")) ?? 0) / 100
         if let t = typeTVA {
+            let ancienNom = t.nom
             t.nom = nom
             t.taux = tauxDecimal
             t.signification = signification
+            // Le libellé est copié par valeur dans chaque écriture (typeTVANom).
+            // Au renommage, on le répercute sur les écritures existantes. Le taux
+            // reste figé sur l'écriture pour l'exactitude historique des montants.
+            if ancienNom != nom {
+                renommerDansEcritures(de: ancienNom, vers: nom)
+            }
         } else {
             let nouveau = TypeTVA(nom: nom, taux: tauxDecimal, signification: signification, ordre: ordreProchain)
             modelContext.insert(nouveau)
@@ -452,6 +504,16 @@ struct FormulaireTVAView: View {
         try? modelContext.save()
         onValider()
         dismiss()
+    }
+
+    private func renommerDansEcritures(de ancienNom: String, vers nouveauNom: String) {
+        let descripteur = FetchDescriptor<Ecriture>(
+            predicate: #Predicate { $0.typeTVANom == ancienNom }
+        )
+        guard let ecritures = try? modelContext.fetch(descripteur) else { return }
+        for ecriture in ecritures {
+            ecriture.typeTVANom = nouveauNom
+        }
     }
 }
 
