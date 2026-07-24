@@ -31,7 +31,7 @@ Application iPhone personnelle pour remplacer un fichier Excel de comptabilité.
 - **Choix de la devise** : sélection de la devise d'affichage (EUR, CHF, USD, GBP, CAD, JPY).
 - Gestion CRUD des centres de coût (nom + couleur, modification par tap sur la ligne)
 - Gestion CRUD des catégories (nom + couleur, modification par tap sur la ligne)
-- Gestion CRUD des types TVA (nom, taux, signification, modification par tap sur la ligne) ; renommer un type répercute le nouveau libellé sur les écritures existantes qui l'utilisent
+- Gestion CRUD des types TVA (nom, taux, signification, modification par tap sur la ligne) ; renommer un type répercute le nouveau libellé sur les écritures existantes qui l'utilisent ; un type utilisé par au moins une écriture ne peut pas être supprimé
 - **Tri manuel** par drag-and-drop pour toutes les listes de référence
 - **Duplication rapide** d'un élément via swipe
 - **Sauvegarde & Import (JSON)** : permet d'exporter l'intégralité des données de l'application ou de les restaurer depuis un fichier.

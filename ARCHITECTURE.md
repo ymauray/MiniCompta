@@ -42,7 +42,7 @@ Représente une ligne du journal comptable.
 | `categorie` | `Categorie?` | Relation optionnelle |
 | `typeTVANom` | `String` | Nom du type TVA (dénormalisé) |
 
-> **Type TVA dénormalisé** : le libellé (`typeTVANom`) et le `tauxTVA` sont copiés par valeur dans chaque écriture (pas de relation vers `TypeTVA`). Le taux reste figé pour préserver l'exactitude historique des montants. En revanche, renommer un type TVA dans les Paramètres répercute le nouveau libellé sur les écritures existantes qui le référencent.
+> **Type TVA dénormalisé** : le libellé (`typeTVANom`) et le `tauxTVA` sont copiés par valeur dans chaque écriture (pas de relation vers `TypeTVA`). Le taux reste figé pour préserver l'exactitude historique des montants. En revanche, renommer un type TVA dans les Paramètres répercute le nouveau libellé sur les écritures existantes qui le référencent. La synchronisation des libellés permet aussi de détecter l'usage d'un type (par `typeTVANom`) et d'en **interdire la suppression** tant qu'au moins une écriture le référence.
 
 > **Migration multi-centres** : l'ancienne relation to-one `centreDeCout` (`CentreDeCout?`) est conservée en lecture pour recopier les données antérieures vers `centresDeCout` au démarrage. Elle n'est plus utilisée depuis l'UI.
 

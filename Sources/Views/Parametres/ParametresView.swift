@@ -327,6 +327,15 @@ struct ListeTypesTVAView: View {
     @Query(sort: \TypeTVA.ordre) private var typesTVA: [TypeTVA]
 
     @State private var mode: ModeFormulaire<TypeTVA>?
+    @State private var messageBlocage: String?
+
+    private func nombreEcritures(pour type: TypeTVA) -> Int {
+        let nom = type.nom
+        let descripteur = FetchDescriptor<Ecriture>(
+            predicate: #Predicate { $0.typeTVANom == nom }
+        )
+        return (try? modelContext.fetchCount(descripteur)) ?? 0
+    }
 
     var body: some View {
         List {
@@ -357,8 +366,23 @@ struct ListeTypesTVAView: View {
                 }
             }
             .onDelete { offsets in
-                for i in offsets { modelContext.delete(typesTVA[i]) }
+                // Un type utilisé par des écritures ne peut pas être supprimé :
+                // les libellés étant synchronisés, l'usage se détecte de façon
+                // fiable via typeTVANom.
+                var bloques: [String] = []
+                for i in offsets {
+                    let type = typesTVA[i]
+                    let n = nombreEcritures(pour: type)
+                    if n > 0 {
+                        bloques.append("« \(type.nom) » est utilisé par \(n) écriture\(n > 1 ? "s" : "").")
+                    } else {
+                        modelContext.delete(type)
+                    }
+                }
                 try? modelContext.save()
+                if !bloques.isEmpty {
+                    messageBlocage = bloques.joined(separator: "\n")
+                }
             }
             .onMove { source, destination in
                 var liste = typesTVA
@@ -388,6 +412,15 @@ struct ListeTypesTVAView: View {
             FormulaireTVAView(typeTVA: type, ordreProchain: typesTVA.count, onValider: {
                 self.mode = nil
             })
+        }
+        .alert(
+            "Suppression impossible",
+            isPresented: Binding(get: { messageBlocage != nil }, set: { if !$0 { messageBlocage = nil } }),
+            presenting: messageBlocage
+        ) { _ in
+            Button("OK", role: .cancel) { }
+        } message: { message in
+            Text(message)
         }
     }
 }
