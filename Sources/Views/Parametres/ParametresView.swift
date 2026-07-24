@@ -171,6 +171,23 @@ protocol ElementConfigurable: PersistentModel {
 extension CentreDeCout: ElementConfigurable {}
 extension Categorie: ElementConfigurable {}
 
+// MARK: - Mode de présentation du formulaire
+
+/// Pilote la présentation via `.sheet(item:)` plutôt que `.sheet(isPresented:)` :
+/// évite le bug de capture d'état obsolète (au premier tap depuis l'arrivée sur
+/// l'écran, `.sheet(isPresented:)` lisait encore l'ancienne sélection).
+enum ModeFormulaire<T: PersistentModel>: Identifiable {
+    case ajout
+    case modification(T)
+
+    var id: String {
+        switch self {
+        case .ajout: return "ajout"
+        case .modification(let element): return "modif-\(element.persistentModelID)"
+        }
+    }
+}
+
 // MARK: - Vue générique pour Centre de coût / Catégorie
 
 struct ListeConfigurableView<T: ElementConfigurable>: View {
@@ -186,10 +203,9 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
 
     private var elementsTries: [T] { elements.sorted { $0.ordre < $1.ordre } }
 
-    @State private var afficherFormulaire = false
     @State private var nomNouveau = ""
     @State private var couleurNouvelle = Color(.systemBlue)
-    @State private var elementAModifier: T?
+    @State private var mode: ModeFormulaire<T>?
 
     var body: some View {
         List {
@@ -205,8 +221,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                 .onTapGesture {
                     nomNouveau = element.nom
                     couleurNouvelle = Color(hex: element.couleurHex)
-                    elementAModifier = element
-                    afficherFormulaire = true
+                    mode = .modification(element)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
@@ -241,21 +256,20 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                     Button {
                         nomNouveau = ""
                         couleurNouvelle = Color(.systemBlue)
-                        elementAModifier = nil
-                        afficherFormulaire = true
+                        mode = .ajout
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $afficherFormulaire) {
+        .sheet(item: $mode) { mode in
             FormulaireElementView(
-                titre: elementAModifier == nil ? ajouterLabel : "Modifier",
+                titre: { if case .modification = mode { return "Modifier" } else { return ajouterLabel } }(),
                 nom: $nomNouveau,
                 couleur: $couleurNouvelle,
                 onValider: {
-                    if let e = elementAModifier {
+                    if case .modification(let e) = mode {
                         e.nom = nomNouveau
                         e.couleurHex = couleurNouvelle.toHex()
                     } else {
@@ -263,7 +277,7 @@ struct ListeConfigurableView<T: ElementConfigurable>: View {
                         modelContext.insert(nouveau)
                     }
                     try? modelContext.save()
-                    afficherFormulaire = false
+                    self.mode = nil
                 }
             )
         }
@@ -312,8 +326,7 @@ struct ListeTypesTVAView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \TypeTVA.ordre) private var typesTVA: [TypeTVA]
 
-    @State private var afficherFormulaire = false
-    @State private var typeAModifier: TypeTVA?
+    @State private var mode: ModeFormulaire<TypeTVA>?
 
     var body: some View {
         List {
@@ -330,8 +343,7 @@ struct ListeTypesTVAView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    typeAModifier = t
-                    afficherFormulaire = true
+                    mode = .modification(t)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
@@ -364,17 +376,17 @@ struct ListeTypesTVAView: View {
                 HStack {
                     EditButton()
                     Button {
-                        typeAModifier = nil
-                        afficherFormulaire = true
+                        mode = .ajout
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $afficherFormulaire) {
-            FormulaireTVAView(typeTVA: typeAModifier, ordreProchain: typesTVA.count, onValider: {
-                afficherFormulaire = false
+        .sheet(item: $mode) { mode in
+            let type: TypeTVA? = { if case .modification(let t) = mode { return t } else { return nil } }()
+            FormulaireTVAView(typeTVA: type, ordreProchain: typesTVA.count, onValider: {
+                self.mode = nil
             })
         }
     }
